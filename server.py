@@ -58,20 +58,19 @@ def check_jwt(token, username):
         payload = jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")
     except:
         return False
-        
+
     if payload["name"] == username:
         return True
     else:
         return False
-    
-app.route('/', methods=['GET'])
-def main():
 
+@app.route('/', methods=['GET'])
+def main():
     return render_template('index.html')
 
-app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'GET':    
+    if request.method == 'GET':
         return render_template('login.html')
     else:
         form = request.form
@@ -79,4 +78,5 @@ def login():
         password = form['password']
 
         return redirect('/')
-
+if __name__== '__main__':
+    app.run("0.0.0.0", port=11702, debug=True)

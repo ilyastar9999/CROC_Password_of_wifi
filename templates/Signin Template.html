@@ -20,14 +20,15 @@
 
     
     <!-- Custom styles for this template -->
-    <link href="Signin%20Template%20%C2%B7%20Bootstrap%20v5.3_files/sign-in.css" rel="stylesheet">
+    
+    <link href="{{url_for('static', filename='sing-in.css')}}" rel="stylesheet">
   </head>
   <body class="d-flex align-items-center py-4 bg-body-tertiary">
     
     
 <main class="form-signin w-100 m-auto">
   <form>
-    <img class="mb-4" src='icon.png' width="90" height="90">
+    <img class="mb-4" src="{{url_for('static', filename='icon.png')}}" width="90" height="90">
     <h1 class="mb-3">Войти</h1>
 
     <div class="form-floating">
@@ -47,10 +48,10 @@
       </label>
     </div>-->
     <button class="btn btn-primary w-100 py-2" type="submit">Войти</button>
-    <h6 class = 'little'>Нет регистрации?<a href = "file:///home/anyka/Documents/CROC_Password_of_wifi/templates/Login%20Template.html?">Зарегистрироваться</a></h6>
+    <h6 class = 'little'>Нет регистрации?<a href = "{{url_for('static', filename= 'Login_Template.html')}}" >Зарегистрироваться</a></h6>
   </form>
 </main>
-<script src="Signin%20Template%20%C2%B7%20Bootstrap%20v5.3_files/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 
     
 

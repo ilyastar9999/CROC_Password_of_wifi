@@ -69,12 +69,12 @@ def check_jwt(token, username):
 
 @app.route('/', methods=['GET'])
 def main():
-    return render_template('index.html')
+    return redirect("/login", code=302)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html")
+        return render_template("Signin Template.html")
     
     else:
         login = request.form["login"]
@@ -92,7 +92,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('register.html')
+        return render_template('Login Template.html')
     else:
         form = request.form
         password = form['password']

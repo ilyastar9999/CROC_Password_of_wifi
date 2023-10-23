@@ -74,3 +74,11 @@ def create_all():
     except:
         pass
     return
+
+def delete_all():
+    sqlite_select_query = ["""DROP TABLE IF EXISTS marks;""", """DROP TABLE IF EXISTS users;""", """DROP TABLE IF EXISTS classes;"""]
+    cursor.execute(sqlite_select_query[0])
+    cursor.execute(sqlite_select_query[1])
+    cursor.execute(sqlite_select_query[2])
+    conn.commit()
+    return True

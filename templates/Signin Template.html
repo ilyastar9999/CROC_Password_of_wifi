@@ -26,9 +26,15 @@
   </head>
   <body class="d-flex align-items-center py-4 bg-body-tertiary">
     
-    
+    {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <script>alert("{{message}}");</script>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 <main class="form-signin w-100 m-auto">
-  <form action="POST">
+  <form method="POST">
     <img class="mb-4" src="{{url_for('static', filename='icon.png')}}" width="90" height="90">
     <h1 class="mb-3">Войти</h1>
 

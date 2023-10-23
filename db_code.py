@@ -62,7 +62,7 @@ def check_not_auth_user_is_exist(username):
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, user_id SEREAL)""", 
+    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, user_id SERIAL)""", 
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
 """CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, members );"""]
     cursor.execute(sqlite_select_query[0])
@@ -74,3 +74,11 @@ def create_all():
     except:
         pass
     return
+
+def delete_all():
+    sqlite_select_query = ["""DROP TABLE IF EXISTS marks;""", """DROP TABLE IF EXISTS users;""", """DROP TABLE IF EXISTS classes;"""]
+    cursor.execute(sqlite_select_query[0])
+    cursor.execute(sqlite_select_query[1])
+    cursor.execute(sqlite_select_query[2])
+    conn.commit()
+    return True

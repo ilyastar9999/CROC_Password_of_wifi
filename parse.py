@@ -1,7 +1,7 @@
 import pandas as pd
 def parse_csv():
-    pipls = pd.read_csv('Контакты учеников.tsv', delimiter='\t', encoding='utf-8')
-    teachers = pd.read_csv('Контакты учителей.tsv', delimiter='\t', encoding='utf-8')
+    pipls = list(pd.read_csv('Контакты учеников.tsv', delimiter='\t', encoding='utf-8')['e-mail ребенка'])
+    teachers = list(pd.read_csv('Контакты учителей.tsv', delimiter='\t', encoding='utf-8')['Email'])
     
     for i in range(len(pipls)):
         try:

@@ -19,6 +19,7 @@ def parse_data(field):
 
     return data
 
+db.delete_all()
 db.create_all()
 
 app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
@@ -46,7 +47,7 @@ def send_email(to, subject, template):
     mail_sender.send(msg)
 
 def generate_confirmation_token(email):
-    return jwt.encode(payload={"name": email, "trash": random.randbytes(10)}, key=parse_data("secret_key"))
+    return jwt.encode(payload={"name": email, "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
 
 
 def confirm_token(token):
@@ -69,19 +70,19 @@ def check_jwt(token, username):
 
 @app.route('/', methods=['GET'])
 def main():
-    return render_template('index.html')
+    return redirect("/login", code=302)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html")
+        return render_template("Signin Template.html")
     
     else:
         login = request.form["login"]
         password = request.form["password"]
 
         if db.get_is_user_logged_in(login, password):
-            token = jwt.encode(payload={"name": login}, key=parse_data("secret_key"))
+            token = jwt.encode(payload={"name": login, "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
             resp = make_response(redirect("/"))
             resp.set_cookie("jwt", token)
             return resp
@@ -92,7 +93,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('register.html')
+        return render_template('Login Template.html')
     else:
         form = request.form
         password = form['password']
@@ -159,7 +160,8 @@ def register():
             return redirect('/register')
         else:
             token = generate_confirmation_token(email)
-            send_email(email, "SESh confirmation", render_template('confirmation.html', token=token))
+            confirm_url = "http://server.silaeder.ru:11702/confirm/" + token
+            send_email(email, "Silaeder School confirmation", render_template('mail.html', confirm_url=confirm_url))
             flash("A confirmation email has been sent to your email")
             return redirect('/login')
         
@@ -175,7 +177,7 @@ def confirm_email(token):
     if db.check_not_auth_user_is_exist(username) == []:
         flash('This is link for not registered account')
         return redirect('/registration', code=302)
-    token = jwt.encode(payload={"name": username, "trash": random.randbytes(10)}, key=parse_data("secret_key"))
+    token = jwt.encode(payload={"name": username, "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
     if db.check_auth_user(username):
         print(db.check_auth_user(username))
         flash('Account already confirmed . Please login')

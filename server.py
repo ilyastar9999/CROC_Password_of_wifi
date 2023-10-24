@@ -68,9 +68,39 @@ def check_jwt(token, username):
     else:
         return False
 
+def role(username):
+    data, data1 = parse.parse_csv()
+    if username in data:
+        return "student"
+    elif username in data1:
+        return "teacher"
+    elif username == "admin":
+        return "admin"
+
 @app.route('/', methods=['GET'])
 def main():
-    return redirect("/login", code=302)
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if not role:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    if role == "student":
+        homeworks = db.get_homework(email)
+        marks = db.get_marks(email)
+        name = db.get_name(email)
+        return render_template("index.html", homeworks=homeworks, marks=marks, name = name)
+    if role == "teacher":
+        classes = db.get_classes_by_teacher(email)
+        name = db.get_name(email)
+        return render_template("index.html", classes=classes, name = name)
+        
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -82,7 +112,7 @@ def login():
         password = request.form["password"]
 
         if db.get_is_user_logged_in(login, password):
-            token = jwt.encode(payload={"name": login, "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
+            token = jwt.encode(payload={"name": login, "role": role(login), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
             resp = make_response(redirect("/"))
             resp.set_cookie("jwt", token)
             return resp
@@ -177,7 +207,7 @@ def confirm_email(token):
     if db.check_not_auth_user_is_exist(username) == []:
         flash('This is link for not registered account')
         return redirect('/registration', code=302)
-    token = jwt.encode(payload={"name": username, "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
+    token = jwt.encode(payload={"name": username, "role": role(username) "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
     if db.check_auth_user(username):
         print(db.check_auth_user(username))
         flash('Account already confirmed . Please login')

@@ -62,9 +62,9 @@ def check_not_auth_user_is_exist(username):
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, user_id SERIAL)""", 
+    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject TEXT);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
-"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, members );"""]
+"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
     conn.commit() 
@@ -82,3 +82,45 @@ def delete_all():
     cursor.execute(sqlite_select_query[2])
     conn.commit()
     return True
+
+def get_is_user_logged_in(username, password):
+    sqlite3_select_query = """SELECT auth FROM users WHERE username =%s AND password =%s;"""
+    cursor.execute(sqlite3_select_query, (username, password, ))
+    conn.commit()
+    ans = cursor.fetchall()
+    print(ans)
+    if ans != []:
+        return ans[0]
+    else:
+        return False
+    
+def get_homework(username):
+    sqlite3_select_query = """SELECT name, homework FROM classes WHERE %s IN members;"""
+    cursor.execute(sqlite3_select_query, (username, ))
+    conn.commit()
+    return cursor.fetchall()
+
+def get_marks(username):
+    sqlite3_select_query = """SELECT subject, value FROM marks WHERE email = %s;"""
+    cursor.execute(sqlite3_select_query, (username, ))
+    conn.commit()
+    ans = cursor.fetchall()
+    ans1 = {}
+    for i in ans:
+        if i[0] in ans1.keys():
+            ans1[i[0]] = [i[1]]
+        else:
+            ans1[i[0]].append(i[1])
+    return ans1
+
+def get_name(email):
+    sqlite3_select_query = """SELECT name FROM users WHERE email = %s;"""
+    cursor.execute(sqlite3_select_query, (email, ))
+    conn.commit()
+    return cursor.fetchall()[0][0]
+
+def get_classes_by_teacher(email):
+    sqlite3_select_query = """SELECT name FROM classes WHERE %s IN teachers;"""
+    cursor.execute(sqlite3_select_query, (email, ))
+    conn.commit()
+    return cursor.fetchall()

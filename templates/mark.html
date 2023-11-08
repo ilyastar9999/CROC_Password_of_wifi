@@ -13,28 +13,32 @@
         text-align: center;
       }
 
-      #h{
-        border: 5px color skyblue;
+      #mark {
+        width: 1.5rem;
       }
-
   </style>
 </head>
 <body>
   <div class="container">
-    <h1> Здраствуйте, {{name}}</h1>
+    <h1> Здраствуйте, {{name}}! </h1>
+    <br>
     <div class="buttons">
-      <a href="#" class="btn btn-primary">Домашнее задание</a>
-      <a href="#" class="btn btn-outline-primary">оценки</a>
+      <a href="#" class="btn btn-outline-primary">Домашнее задание</a>
+      <a href="#" class="btn btn-primary">оценки</a>
     </div>
-
-    <div class = "homework">
+    <br>
+    <br>
+    <div class = "marks">
       {% if ans %}
-        <h1> нет дз </h1><!-- ПРАВИТЬ -->
+        <h4> нет оценок </h1><!-- ПРАВИТЬ -->
       {% else %}
         {% for i in ans %}
-          <div class = "border border-primary rounded" id = "h">
-            <h1> {{i[0]}} </h1>
-            <p> {{i[1]}} </p>
+          <div class = "border border-primary rounded">
+            <h4> {{i[0]}} </h1>
+            <!--<p> {{i[1]}} </p>-->
+            {% for j in i[1:] %}
+                <div class = "border border-primary rounded" id="mark"> {{j}} </div>
+            {% endfor %}
           </div>
         {% endfor %}
       {% endif %}

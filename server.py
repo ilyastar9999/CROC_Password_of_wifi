@@ -77,6 +77,42 @@ def role(username):
     elif username == "admin":
         return "admin"
 
+@app.route("/marks", methods=["GET"])
+def homeworks():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if role == "student":
+        marks = db.get_marks(email)
+        name = db.get_name(email)
+        return render_template("index.html", ans=marks, name = name)
+    if role == "teacher":
+        return redirect("/", code=302)
+
+@app.route("/homework", methods=["GET"])
+def homeworks():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if role == "student":
+        homeworks = db.get_homework(email)
+        name = db.get_name(email)
+        return render_template("index.html", ans=homeworks, name = name)
+    if role == "teacher":
+        return redirect("/", code=302)
+
 @app.route('/', methods=['GET'])
 def main():
     token = request.cookies.get("jwt")
@@ -92,10 +128,7 @@ def main():
         flash('Invalid token')
         return redirect("/login", code=302)
     if role == "student":
-        homeworks = db.get_homework(email)
-        marks = db.get_marks(email)
-        name = db.get_name(email)
-        return render_template("index.html", homeworks=homeworks, marks=marks, name = name)
+        return redirect("/homeworks", code=302)
     if role == "teacher":
         classes = db.get_classes_by_teacher(email)
         name = db.get_name(email)
@@ -218,6 +251,27 @@ def confirm_email(token):
         resp = make_response(redirect("/", code=302))
         resp.set_cookie("jwt", token)
         return resp
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    resp = make_response(redirect("/login", code=302))
+    resp.set_cookie("jwt", "", expires=0)
+    return resp
+
+@app.route('/class/add', methods=['GET', 'POST'])
+def class_add():
+    if request.method == 'GET':
+        return render_template('class_add.html')
+    else:
+        form = request.form
+        name = form['name']
+        if name == "":
+            flash("Class name is required")
+            return redirect('/class/add', code=302)
+        password = form['password']
+        if password == "":
+            for i in range(random.randint(4, 10)):
+                password += random.choice('qwertyuiopasdfghjklzxcvbnmQAZWSXEDCRFVTGBYHNUJMIK,OL.P_()')
 
 
 if __name__== '__main__':

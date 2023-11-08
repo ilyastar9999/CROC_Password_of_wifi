@@ -78,7 +78,7 @@ def role(username):
         return "admin"
 
 @app.route("/marks", methods=["GET"])
-def homeworks():
+def marks():
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
@@ -91,7 +91,7 @@ def homeworks():
     if role == "student":
         marks = db.get_marks(email)
         name = db.get_name(email)
-        return render_template("index.html", ans=marks, name = name)
+        return render_template("marks.html", ans=marks, name = name)
     if role == "teacher":
         return redirect("/", code=302)
 

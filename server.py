@@ -240,7 +240,7 @@ def confirm_email(token):
     if db.check_not_auth_user_is_exist(username) == []:
         flash('This is link for not registered account')
         return redirect('/registration', code=302)
-    token = jwt.encode(payload={"name": username, "role": role(username) "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
+    token = jwt.encode(payload={"name": username, "role": role(username), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
     if db.check_auth_user(username):
         print(db.check_auth_user(username))
         flash('Account already confirmed . Please login')

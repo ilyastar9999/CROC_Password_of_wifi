@@ -69,8 +69,8 @@ def create_all():
     cursor.execute(sqlite_select_query[1])
     conn.commit() 
     try:
-        create_user("admin", "silaederprojects@gmail.com", parse_data("secret_key"), "Admin", "Adminovich")
-        auth_user('admin')
+        create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
+        auth_user('schoolsilaeder@gmail.com')
     except:
         pass
     return
@@ -84,7 +84,7 @@ def delete_all():
     return True
 
 def get_is_user_logged_in(username, password):
-    sqlite3_select_query = """SELECT auth FROM users WHERE username =%s AND password =%s;"""
+    sqlite3_select_query = """SELECT auth FROM users WHERE email =%s AND password =%s;"""
     cursor.execute(sqlite3_select_query, (username, password, ))
     conn.commit()
     ans = cursor.fetchall()
@@ -95,7 +95,7 @@ def get_is_user_logged_in(username, password):
         return False
     
 def get_homework(username):
-    sqlite3_select_query = """SELECT name, homework FROM classes WHERE %s IN members;"""
+    sqlite3_select_query = """SELECT name, homework FROM classes WHERE %s = ANY(members);"""
     cursor.execute(sqlite3_select_query, (username, ))
     conn.commit()
     return cursor.fetchall()

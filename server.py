@@ -79,6 +79,27 @@ def role(username):
     elif username == "admin":
         return "admin"
 
+@app.route("/user", methods=["GET"])
+def user():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if not role:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    data = db.get_user_by_email(email)
+    if data != []:
+        return render_template("user.html", data=data)
+    else:
+        flash('User not found')
+        return redirect("/login", code=500)
+
 @app.route("/marks", methods=["GET"])
 def marks():
     token = request.cookies.get("jwt")
@@ -347,6 +368,7 @@ def add_student():
         else:
             flash("Invalid password")
             return redirect('/', code=500)
+        
         
 
 if __name__== '__main__':

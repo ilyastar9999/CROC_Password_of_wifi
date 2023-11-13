@@ -166,3 +166,9 @@ def add_class_member(id, email):
         return True
     except:
         return False
+
+def get_user_by_email(email):
+    sqlite3_select_query = """SELECT * FROM users WHERE email = %s;"""
+    cursor.execute(sqlite3_select_query, (email, ))
+    conn.commit()
+    return cursor.fetchall()

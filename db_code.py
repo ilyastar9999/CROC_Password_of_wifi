@@ -64,7 +64,7 @@ def check_not_auth_user_is_exist(username):
 def create_all():
     sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject TEXT);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
-"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
+"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
     conn.commit() 
@@ -124,3 +124,45 @@ def get_classes_by_teacher(email):
     cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     return cursor.fetchall()
+
+def get_class_by_id(id):
+    sqlite3_select_query = """SELECT * FROM classes WHERE id = %s;"""
+    cursor.execute(sqlite3_select_query, (id, ))
+    conn.commit()
+    return cursor.fetchall()
+
+def create_class(class_name, password, teacher_email):
+    try:
+        sqlite3_select_query = """INSERT INTO classes (name, password, teachers) VALUES (%s, %s, %s);"""
+        cursor.execute(sqlite3_select_query, (class_name, password, [teacher_email], ))
+        conn.commit()
+        return True
+    except:
+        return False
+    
+def is_class_exists(id):
+    sqlite3_select_query = """SELECT * FROM classes WHERE id = %s;"""
+    cursor.execute(sqlite3_select_query, (id, ))
+    conn.commit()
+    if cursor.fetchall() != []:
+        return True
+    else:
+        return False
+
+def check_class_password(id, password):
+    sqlite3_select_query = """SELECT password FROM classes WHERE id = %s;"""
+    cursor.execute(sqlite3_select_query, (id, ))
+    conn.commit()
+    if cursor.fetchall()[0][0] == password:
+        return True
+    else:
+        return False
+
+def add_class_member(id, email):
+    try:
+        sqlite3_select_query  = """SELECT ARRAY_APPEND(members, %s) FROM members WHERE id = %s;"""
+        cursor.execute(sqlite3_select_query, (email, id, ))
+        conn.commit()
+        return True
+    except:
+        return False

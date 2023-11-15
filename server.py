@@ -6,10 +6,8 @@ import re
 from werkzeug.utils import secure_filename
 import os
 import parse
-#import db_code as db
+import db_code as db
 import random
-
-db = None 
 
 app = Flask(__name__)
 

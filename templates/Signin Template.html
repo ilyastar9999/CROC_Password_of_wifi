@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Страница входа</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel= "stylesheet" type= "text/css" href="{{url_for('static', filename='styles/reg.css')}}">
     <style>
       .mb-3{
         font-family: 'Bradley Hand';
@@ -21,18 +22,24 @@
     
     <!-- Custom styles for this template -->
     
-    <link href="{{url_for('static', filename='sing-in.css')}}" rel="stylesheet">
+    
   </head>
   <body class="d-flex align-items-center py-4 bg-body-tertiary">
     
-    
+    {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <script>alert("{{message}}");</script>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 <main class="form-signin w-100 m-auto">
-  <form>
+  <form method="POST">
     <img class="mb-4" src="{{url_for('static', filename='icon.png')}}" width="90" height="90">
     <h1 class="mb-3">Войти</h1>
 
     <div class="form-floating">
-      <input type="email" class="form-control" id="email" placeholder="Адрес электронной почты" name="email">
+      <input type="email" class="form-control" id="login" placeholder="Адрес электронной почты" name="login">
               
       <!-- <label for="floatingInput">Адрес электронной почты</label> -->
     </div>
@@ -48,7 +55,7 @@
       </label>
     </div>-->
     <button class="btn btn-primary w-100 py-2" type="submit">Войти</button>
-    <h6 class = 'little'>Нет регистрации?<a href = "{{url_for('static', filename= 'Login_Template.html')}}" >Зарегистрироваться</a></h6>
+    <h6 class = 'little'>Нет регистрации?<a href = "/register" >Зарегистрироваться</a></h6>
   </form>
 </main>
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>

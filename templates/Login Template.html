@@ -29,15 +29,19 @@
 
     
     <!-- Custom styles for this template -->
-    <link href="/static/styles/reg.css" rel="stylesheet">
+    <link href="{{url_for('static', filename='styles/reg.css')}}" rel="stylesheet">
   </head>
   <body class="d-flex align-items-center py-4 bg-body-tertiary">
     
     
 <main class="form-signin w-100 m-auto">
-  
-            
-        
+  {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <script>alert("{{message}}");</script>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
   <form method="POST">
     <img class="mb-4" src="{{url_for('static', filename='icon.png')}}" width="90" height="90">
     <h1 class="mb-3">Регистрация</h1>
@@ -67,6 +71,7 @@
     </div>-->
     <button class="btn btn-primary w-100 py-2" type="submit">Зарегистрироваться</button>
     <h6 class="little">Уже есть аккаунт?<a href="{{url_for('static', filename= 'Singin_Template.html')}}">Войти</a></h6>
+
   </form>
 </main>
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>

@@ -30,6 +30,12 @@ def parse_data(field):
 
     return data
 
+def get_all_users():
+    query = """SELECT * FROM users;"""
+    cursor.execute(query)
+    conn.commit()
+    return cursor.fetchall()
+
 def create_user(name, password, email):
     try:
         cursor.execute("""INSERT INTO users (name, password, auth, email) VALUES (%s, %s, %s, %s)""", (name, password, False, email))
@@ -85,7 +91,7 @@ def delete_all():
     return True
 
 def get_is_user_logged_in(username, password):
-    sqlite3_select_query = """SELECT auth FROM users WHERE email =%s AND password =%s;"""
+    sqlite3_select_query = """SELECT auth FROM users WHERE email=%s AND password=%s;"""
     cursor.execute(sqlite3_select_query, (username, password, ))
     conn.commit()
     ans = cursor.fetchall()
@@ -121,8 +127,12 @@ def get_name(email):
     return cursor.fetchall()[0][0]
 
 def get_classes_by_teacher(email):
-    sqlite3_select_query = """SELECT name FROM classes WHERE %s IN teachers;"""
-    cursor.execute(sqlite3_select_query, (email, ))
+    if email == "schoolsilaeder@gmail.com":
+        sqlite3_select_query = """SELECT name FROM classes;"""
+        cursor.execute(sqlite3_select_query)
+    else:
+        sqlite3_select_query = """SELECT name FROM classes WHERE %s = ANY(teachers);"""
+        cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     return cursor.fetchall()
 
@@ -214,3 +224,6 @@ def get_marks_by_class(id_class):
         conn.commit()
         ans.append([members[i]] + cursor.fetchall())
     return ans
+
+#DEBUG
+print(get_all_users())

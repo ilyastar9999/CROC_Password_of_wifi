@@ -22,6 +22,7 @@ def parse_data(field):
 #db.delete_all()
 #db.create_all()
 
+print("create all")
 app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -90,8 +91,8 @@ def marks():
     if role == "student":
         marks = db.get_marks(email)
         name = db.get_name(email)
-        return render_template("marks.html", ans=marks, name = name)
-    if role == "teacher":
+        return render_template("mark.html", ans=marks, name = name)
+    if role == "teacher" or role == 'admin':
         return redirect("/", code=302)
 
 @app.route("/homework", methods=["GET"])
@@ -108,11 +109,9 @@ def homeworks():
     if role == "student":
         homeworks = db.get_homework(email)
         name = db.get_name(email)
-        return render_template("index.html", ans=homeworks, name = name)
-    if role == "teacher":
+        return render_template("homework.html", ans=homeworks, name = name)
+    if role == "teacher" or role == 'admin':
         return redirect("/", code=302)
-    if role == "admin":
-        return redirect('/admin', code=302)
     
 
 @app.route('/', methods=['GET'])
@@ -132,12 +131,10 @@ def main():
         return redirect("/login", code=302)
     if role == "student":
         return redirect("/homework", code=302)
-    if role == "teacher":
+    if role == "teacher" or role == "admin":
         classes = db.get_classes_by_teacher(email)
         name = db.get_name(email)
-        return render_template("index.html", classes=classes, name=name)
-    if role == "admin":
-        return redirect('/admin', code=302)
+        return render_template("Main Teacher.html", classes=classes, name=name)
         
 
 @app.route("/login", methods=["GET", "POST"])
@@ -263,7 +260,7 @@ def logout():
     resp.set_cookie("jwt", "", expires=0)
     return resp
 
-@app.route('/class/add', methods=['GET', 'POST'])
+@app.route('/classes/add', methods=['GET', 'POST'])
 def class_add():
     if request.method == 'GET':
         return render_template('class_add.html')

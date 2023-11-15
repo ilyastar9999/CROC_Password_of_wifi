@@ -39,9 +39,13 @@
   <form method="POST">
     <img class="mb-4" src="{{url_for('static', filename='icon.png')}}" width="90" height="90">
     <h1 class="mb-3">Здравствуйте, {{name}}!</h1>
-    {% for i in ans %}
-    <a class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px; display:inline-block;' href="/classes/{{i[1]}}">{{i[0]}}</a>
-    {% endfor %}
+    {% if ans|length == 0 %}
+      <h1>У вас нет класов</h1>
+    {% else %}
+      {% for i in ans %}
+      <a class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px; display:inline-block;' href="/classes/{{i[1]}}">{{i[0]}}</a>
+      {% endfor %}
+    {% endif %}
   </form>
 </main>
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>

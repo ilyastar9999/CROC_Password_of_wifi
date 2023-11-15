@@ -52,7 +52,7 @@ def generate_confirmation_token(email):
 
 def confirm_token(token):
     try:
-    	return jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")["name"]
+        return jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")["name"]
     except:
     	return False
 

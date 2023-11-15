@@ -47,18 +47,20 @@
     <h1 class="mb-3">Регистрация</h1>
 
     <div class="form-floating">
-      <input type="name" class="form-control" id="name" placeholder="Имя и фамилия" name="name">
+      <input type="text" class="form-control" id="name" placeholder="Имя и фамилия" name="name">
       <!-- <label for="floatingInput">Адрес электронной почты</label> -->
     </div>
 
     <div class="form-floating">
-      <input type="email" class="form-control" id="email" placeholder="Адрес электронной почты" name="email">
+      <input type="text" class="form-control" id="email" placeholder="Адрес электронной почты" name="email">
       <!-- <label for="floatingInput">Адрес электронной почты</label> -->
     </div>
+
     <div class="form-floating">
       <input type="password" class="form-control" id="password" placeholder="Придумайте пароль" name="password">
       <!-- <label for="floatingPassword">Пароль</label> -->
     </div>
+
     <div class="form-floating">
       <input type="password" class="form-control" id="password2" placeholder="Повторите пароль" name="password2">
       <!-- <label for="floatingPassword">Пароль</label> -->
@@ -69,8 +71,8 @@
         Запомнить меня
       </label>
     </div>-->
-    <button class="btn btn-primary w-100 py-2" type="submit">Зарегистрироваться</button>
-    <h6 class="little">Уже есть аккаунт?<a href="{{url_for('static', filename= 'Singin_Template.html')}}">Войти</a></h6>
+    <button class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px;'>Зарегистрироваться</button>
+    <h6 class="little">Уже есть аккаунт?<a href="/login">Войти</a></h6>
 
   </form>
 </main>

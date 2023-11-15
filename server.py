@@ -9,8 +9,6 @@ import parse
 #import db_code as db
 import random
 
-db = None 
-
 app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -29,7 +27,7 @@ app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'silaederprojects@gmail.com'  
 app.config['MAIL_DEFAULT_SENDER'] = 'silaederprojects@gmail.com'  
-app.config['MAIL_PASSWORD'] = parse_data("mail_password")
+#app.config['MAIL_PASSWORD'] = parse_data("mail_password")
 app.config['UPLOAD_FOLDER'] = './static/'
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -451,37 +449,6 @@ def view_student(id, student_id):
     marks = db.get_stydent_marks_in_class(id, student_id)
     return render_template('student.html')
 
-@app.route('/classes/<id>/student/<student_id>/add_mark', methods=['GET', 'POST'])
-def view_student(id, student_id):
-    token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login", code=302)
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token')
-        return redirect("/login", code=302)
-    role = role(email)
-    if not role:
-        flash('Invalid token')
-        return redirect("/login", code=302)
-    if role != 'teacher':
-        flash("Asset denied")
-        return redirect('/', code=403)
-    if db.get_count_of_class_members(id) >= student_id:
-        flash('Student not found')
-        return redirect('/classes/<id>/', code=404)
-    form = request.form
-    mark =  form['mark']
-    if mark.isdigit() and int(mark) > 0 and int(mark) < 11:
-        if db.add_mark(mark, id, student_id):
-           flash('Mark added successfully')
-           return redirect(f'/classes/{id}/student/{student_id}/', code=200)
-        else:
-            return 'Error'
-    else:
-        flash("Invalid mark")
-        return redirect(f'/classes/{id}/student/{id}/', code=302)
-
+#
 if __name__== '__main__':
     app.run("0.0.0.0", port=11702, debug=True)

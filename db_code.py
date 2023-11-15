@@ -62,11 +62,12 @@ def check_not_auth_user_is_exist(username):
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject INTEGER);""",
+    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject SEREAL, name TEXT);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
 """CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
+    cursor.execute(sqlite_select_query[2])
     conn.commit() 
     try:
         create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
@@ -199,40 +200,17 @@ def add_teacher(id, email):
         return True
     except:
         return False
-    
-def get_student_by_id_in_class(id_class, id_student):
-    query = """SELECT members FROM classes WHERE id_class = %s;"""
+
+def get_marks_by_class(id_class):
+    query = """SELECT members FROM classes WHERE id = %s;"""
     cursor.execute(query, (id_class, ))
     conn.commit()
-    query = """SELECT * FROM users WHERE email = %s;"""
-    cursor.execute(query, (cursor.fetchall()[0][id_student], ))
-    conn.commit()
-    return cursor.fetchall()
-
-def get_stydent_marks_in_class(id_class, id_student):
-    query = """SELECT members FROM classes WHERE id_class = %s;"""
-    cursor.execute(query, (id_class, ))
-    conn.commit()
-    query = """SELECT value FROM marks WHERE email = %s;"""
-    cursor.execute(query, (cursor.fetchall()[0][id_student], ))
-    conn.commit()
-    return cursor.fetchall()
-
-def get_count_of_class_members(id_class):
-    query = """SELECT count(members) FROM classes WHERE id = %s;"""
-    cursor.execute(query, (id_class, ))
-    conn.commit()
-    return cursor.fetchall()[0][0]
-
-def add_mark(value, id_class, id_student):
-    try:
-        data = get_student_by_id_in_class(id_class, id_student)
-        query = """SELECT members FROM classes WHERE id_class = %s;"""
-        cursor.execute(query, (id_class, ))
+    members = cursor.fetchall()
+    query = """SELECT name FROM marks WHERE subject = %s ORDER BY name;"""
+    ans = [''] + cursor.fetchall()
+    for i in range(len(members)):
+        query = """SELECT value FROM marks WHERE class_id = %s AND email = %s ORDER BY name;"""
+        cursor.execute(query, (id_class, members[i], ))
         conn.commit()
-        query = """INSERT INTO marks (value, subject, email) VALUES (%s, %s, %s);"""
-        cursor.execute(query, (value, id_class, data[0][-1]))
-        conn.commit()
-        return True
-    except:
-        return False
+        ans.append([members[i]] + cursor.fetchall())
+    return

@@ -2,11 +2,12 @@
 <html lang="en" data-bs-theme="dark"><head>
 
   <head>
+      
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Страница регистрации</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel=”icon” href=”/home/anyka/.cache/.fr-lhC1NB/favicon-32x32.png” type=”image/x-icon”>
+    <link rel="”icon”" href="”/home/anyka/.cache/.fr-lhC1NB/favicon-32x32.png”" type="”image/x-icon”">
     <style>
       .mb-3{
         font-family: 'Bradley Hand';
@@ -15,6 +16,12 @@
       background-image: url('background.png');
       background-size:100%;
       /* } */
+      .h6{
+         margin-top: 10px;
+      }
+      .button{
+        margin-top: 10px;
+      }
       
 
 
@@ -40,18 +47,20 @@
     <h1 class="mb-3">Регистрация</h1>
 
     <div class="form-floating">
-      <input type="name" class="form-control" id="name" placeholder="Имя и фамилия" name="name">
+      <input type="text" class="form-control" id="name" placeholder="Имя и фамилия" name="name">
       <!-- <label for="floatingInput">Адрес электронной почты</label> -->
     </div>
 
     <div class="form-floating">
-      <input type="email" class="form-control" id="email" placeholder="Адрес электронной почты" name="email">
+      <input type="text" class="form-control" id="email" placeholder="Адрес электронной почты" name="email">
       <!-- <label for="floatingInput">Адрес электронной почты</label> -->
     </div>
+
     <div class="form-floating">
       <input type="password" class="form-control" id="password" placeholder="Придумайте пароль" name="password">
       <!-- <label for="floatingPassword">Пароль</label> -->
     </div>
+
     <div class="form-floating">
       <input type="password" class="form-control" id="password2" placeholder="Повторите пароль" name="password2">
       <!-- <label for="floatingPassword">Пароль</label> -->
@@ -62,8 +71,9 @@
         Запомнить меня
       </label>
     </div>-->
-    <button class="btn btn-primary w-100 py-2" type="submit">Зарегистрироваться</button>
-    <h6 class = 'little'>Уже есть аккаунт?<a href = "/login">Войти</a></h6>
+    <button class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px;'>Зарегистрироваться</button>
+    <h6 class="little">Уже есть аккаунт?<a href="/login">Войти</a></h6>
+
   </form>
 </main>
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>

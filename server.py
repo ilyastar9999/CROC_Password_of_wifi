@@ -430,8 +430,8 @@ def edit_homework(id):
         flash("Asset denied")
         return redirect('/', code=403)
 
-@app.route('/classes/<id>/student/<student_id>', methods=['GET'])
-def view_student(id, student_id):
+@app.route('/classes/<id>/edit_marks/', methods=['GET', 'POST'])
+def edit_marks(id):
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
@@ -447,41 +447,12 @@ def view_student(id, student_id):
     if role != 'teacher':
         flash("Asset denied")
         return redirect('/', code=403)
-    stu_data = db.get_student_by_id_in_class(id, student_id)
-    marks = db.get_stydent_marks_in_class(id, student_id)
-    return render_template('student.html')
-
-@app.route('/classes/<id>/student/<student_id>/add_mark', methods=['GET', 'POST'])
-def view_student(id, student_id):
-    token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login", code=302)
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token')
-        return redirect("/login", code=302)
-    role = role(email)
-    if not role:
-        flash('Invalid token')
-        return redirect("/login", code=302)
-    if role != 'teacher':
-        flash("Asset denied")
-        return redirect('/', code=403)
-    if db.get_count_of_class_members(id) >= student_id:
-        flash('Student not found')
-        return redirect('/classes/<id>/', code=404)
-    form = request.form
-    mark =  form['mark']
-    if mark.isdigit() and int(mark) > 0 and int(mark) < 11:
-        if db.add_mark(mark, id, student_id):
-           flash('Mark added successfully')
-           return redirect(f'/classes/{id}/student/{student_id}/', code=200)
-        else:
-            return 'Error'
+    if request.method == 'GET':
+        data = db.get_marks_by_class(id)
+        return render_template('edit_marks.html', data=data)
     else:
-        flash("Invalid mark")
-        return redirect(f'/classes/{id}/student/{id}/', code=302)
+        form = request.form
+        pass
 
 if __name__== '__main__':
     app.run("0.0.0.0", port=11702, debug=True)

@@ -225,5 +225,11 @@ def get_marks_by_class(id_class):
         ans.append([members[i]] + cursor.fetchall())
     return ans
 
+def change_password(email, password):
+    query = """UPDATE users SET password = %s WHERE email=%s;"""
+    cursor.execute(query, (password, email, ))
+    conn.commit()
+    return
+
 #DEBUG
 print(get_all_users())

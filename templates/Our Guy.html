@@ -16,13 +16,6 @@
       background-image: url('background.png');
       background-size:100%;
       /* } */
-      .h6{
-         margin-top: 10px;
-      }
-      .button{
-        margin-top: 10px;
-        display:inline-block;
-      }
       .dropbtn {
   /*background-color: #04AA6D;*/
   color: white;
@@ -58,19 +51,20 @@
 
 .dropdown:hover .dropbtn {background-color: #FFA500;}     
 
-</style>
+
+    </style>
 
     
     <!-- Custom styles for this template -->
     <link href="{{url_for('static', filename='styles/reg.css')}}" rel="stylesheet">
   </head>
-  <body class="d-flex align-items-center py-4 bg-body-tertiary">
+  <body class=" align-items-center py-4 bg-body-tertiary">
     
     
 <main class="form-signin w-100 m-auto">
   <header>
     <div class="dropdown">
-        <button class="dropbtn" style="margin-bottom: 20px;">👤</button>
+        <button class="dropbtn" >👤</button>
         <div class="dropdown-content">
           <a href="#">Link 1</a>
           <a href="#">Link 2</a>
@@ -78,17 +72,6 @@
         </div>
     </div>
   </header>
-  <form method="POST">
-    <h1 class="mb-3">Здравствуйте, {{name}}!</h1>
-    {% if ans|length == 0 %}
-      <h1 class="mb-3">У вас нет класов</h1>
-    {% else %}
-      {% for i in ans %}
-      <a class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px; display:inline-block;' href="/classes/{{i[1]}}">{{i[0]}}</a>
-      {% endfor %}
-    {% endif %}
-    <a class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px; display:inline-block;' href="/classes/add">Добавить класс</a>
-  </form>
 </main>
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 

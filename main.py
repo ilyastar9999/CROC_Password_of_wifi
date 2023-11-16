@@ -274,6 +274,193 @@ def class_add():
                 password += random.choice('qwertyuiopasdfghjklzxcvbnmQAZWSXEDCRFVTGBYHNUJMIK,OL.P_()')
 
 
+@app.route('/classes/<id>', methods=['GET'])
+def class_view(id):
+    names = db.get_topics_of_marks(id)
+    data = db.get_class_by_id(id)
+    return render_template('Class.html', ans=data, names=names)
+
+@app.route('/classes/<id>/add_student', methods=['GET', 'POST'])
+def add_student():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if not role:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    if role != 'student':
+        flash("Asset denied")
+        return redirect('/', code=403)
+    if not db.is_class_exists(id):
+        flash("No class exists")
+        return redirect('/', code=404)
+    if request.method == 'GET':
+        return render_template('add_student.html')
+    else:
+        form = request.form
+        password = form['password']
+        if db.check_class_password(id, password):
+            if db.add_student(id, email):
+                flash('You sucssesfuly added')
+                return redirect('/classes/'+str(id)+'/', code=200)
+        else:
+            flash("Invalid password")
+            return redirect('/', code=403)
+
+@app.route('/classes/<id>/add_teacher', methods=['GET', 'POST'])  
+def add_teacher(id):
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if not role:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    if role != 'teacher':
+        flash("Asset denied")
+        return redirect('/', code=403)
+    if request.method == 'GET':
+        return render_template('add_teacher.html')
+    else:
+        form = request.form
+        email = form['email']
+        if db.is_user_exists(email):
+            if db.add_user(email):
+                flash('Teacher added successfully')
+                return redirect("/classes<", code=200)
+            else:
+                return "Error"
+        else:
+            flash('No such user')
+            return redirect(f"/classes/{id}/add_teacher", code=302)
+
+@app.route('/classes/<id>/edit_homework', methods=['GET', 'POST'])
+def edit_homework(id):
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if not role:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    if role == 'teacher':
+        if request.method == 'GET':
+            return render_template('edit_homework.html')
+        else:
+            form = request.form
+            text = form['text']
+            if db.update_homework(id, text):
+                flash('Homework updated successfully')
+                redirect(f"/classes/{id}", code=200)
+            else:
+                return 'ERROR'
+    else:
+        flash("Asset denied")
+        return redirect('/', code=403)
+
+@app.route('/classes/<id>/edit_marks/', methods=['GET', 'POST'])
+def edit_marks(id):
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    role = role(email)
+    if not role:
+        flash('Invalid token')
+        return redirect("/login", code=302)
+    if role != 'teacher':
+        flash("Asset denied")
+        return redirect('/', code=403)
+    if request.method == 'GET':
+        data = db.get_marks_by_class(id)
+        return render_template('edit_marks.html', data=data)
+    else:
+        form = request.form
+        pass
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302) 
+    if request.method == 'GET':
+        return render_template('change_pass.html')
+    else:
+        form = request.form
+        old_pass = form['old_pass']
+        password = form['new_pass']
+        password2 = form['new_pass2']
+        if db.get_is_user_logged_in(email, old_pass):
+            if len(password) < 8:
+                flash("Password must be at least 8 characters long")
+                return redirect('/register')
+
+            hasDigits, hasUpperCase, hasLowerCase, hasSpecialCharecters, hasSpases = False, False, False, False, True
+
+            for i in password:
+                if (i.isdigit()):
+                    hasDigits = True
+                elif (i.isupper()):
+                    hasUpperCase = True
+                elif (i.islower()):
+                    hasLowerCase = True
+                elif (i == ' '):
+                    flash('Spaces are not allowed in')
+                else:
+                    hasSpecialCharecters = True 
+
+            if not hasDigits:
+                flash("Password must contain at least one digit")
+                return redirect('/change_password')
+            
+            if not hasUpperCase:
+                flash("Password must contain at least one uppercase letter")
+                return redirect('/change_password')
+            
+            if not hasLowerCase:
+                flash("Password must contain at least one lowercase letter")
+                return redirect('/change_password')
+            
+            if not hasSpecialCharecters:
+                flash("Password must contain at least one special character")
+                return redirect('/change_password')
+
+            if password!= password2:
+                flash("Passwords don't match")
+                return redirect('/change_password')
+
+            flash('Updated password sucsesfuly')
+            db.change_password(email, password)
+            return redirect('/')
+        else:
+            flash("Invalid old password")
+        
+
 if __name__== '__main__':
     print('start')
     app.run("0.0.0.0", port=11702, debug=True)

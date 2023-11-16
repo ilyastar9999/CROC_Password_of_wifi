@@ -276,8 +276,9 @@ def class_add():
 
 @app.route('/classes/<id>', methods=['GET'])
 def class_view(id):
+    names = db.get_topics_of_marks(id)
     data = db.get_class_by_id(id)
-    return render_template('Class.html', data=data)
+    return render_template('Class.html', ans=data, names=names)
 
 @app.route('/classes/<id>/add_student', methods=['GET', 'POST'])
 def add_student():
@@ -399,7 +400,7 @@ def edit_marks(id):
 
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
-  token = request.cookies.get("jwt")
+    token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
         return redirect("/login", code=302)

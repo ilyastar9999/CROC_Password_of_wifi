@@ -231,5 +231,11 @@ def change_password(email, password):
     conn.commit()
     return
 
+def get_topics_of_marks(id):
+    query = """SELECT name FROM marks WHERE class_id=%s;"""
+    cursor.execute(query, (id, ))
+    conn.commit()
+    return list(set(cursor.fetchall()))
+
 #DEBUG
 print(get_all_users())

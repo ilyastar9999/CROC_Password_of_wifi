@@ -273,6 +273,69 @@ def class_add():
             for i in range(random.randint(4, 10)):
                 password += random.choice('qwertyuiopasdfghjklzxcvbnmQAZWSXEDCRFVTGBYHNUJMIK,OL.P_()')
 
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login", code=302)
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token')
+        return redirect("/login", code=302) 
+    if request.method == 'GET':
+        return render_template('change_pass.html')
+    else:
+        form = request.form
+        old_pass = form['old_pass']
+        password = form['new_pass']
+        password2 = form['new_pass2']
+        if db.get_is_user_logged_in(email, old_pass):
+            if len(password) < 8:
+                flash("Password must be at least 8 characters long")
+                return redirect('/register')
+
+            hasDigits, hasUpperCase, hasLowerCase, hasSpecialCharecters, hasSpases = False, False, False, False, True
+
+            for i in password:
+                if (i.isdigit()):
+                    hasDigits = True
+                elif (i.isupper()):
+                    hasUpperCase = True
+                elif (i.islower()):
+                    hasLowerCase = True
+                elif (i == ' '):
+                    flash('Spaces are not allowed in')
+                else:
+                    hasSpecialCharecters = True 
+
+            if not hasDigits:
+                flash("Password must contain at least one digit")
+                return redirect('/change_password')
+            
+            if not hasUpperCase:
+                flash("Password must contain at least one uppercase letter")
+                return redirect('/change_password')
+            
+            if not hasLowerCase:
+                flash("Password must contain at least one lowercase letter")
+                return redirect('/change_password')
+            
+            if not hasSpecialCharecters:
+                flash("Password must contain at least one special character")
+                return redirect('/change_password')
+
+            if password!= password2:
+                flash("Passwords don't match")
+                return redirect('/change_password')
+
+            flash('Updated password sucsesfuly')
+            #add password update db
+            return redirect('/')
+        else:
+            flash("Invalid old password")
+        
+
 
 if __name__== '__main__':
     print('start')

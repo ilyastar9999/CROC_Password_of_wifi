@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark"><head>
+
+  <head>
+      
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница учителя</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="”icon”" href="”/home/anyka/.cache/.fr-lhC1NB/favicon-32x32.png”" type="”image/x-icon”">
+    <style>
+      .mb-3{
+        font-family: 'Bradley Hand';
+      }
+      /* body { 
+      background-image: url('background.png');
+      background-size:100%;
+      /* } */
+      .dropbtn {
+  /*background-color: #04AA6D;*/
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border-radius: 50px;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #FFA500;}     
+
+
+    </style>
+
+    
+    <!-- Custom styles for this template -->
+    <link href="{{url_for('static', filename='styles/reg.css')}}" rel="stylesheet">
+  </head>
+  <body class=" align-items-center py-4 bg-body-tertiary">
+    
+    
+<main class="form-signin w-100 m-auto">
+  <header>
+    <div class="dropdown">
+        <button class="dropbtn" >👤</button>
+        <div class="dropdown-content">
+          <a href="#">Link 1</a>
+          <a href="#">Link 2</a>
+          <a href="#">Link 3</a>
+        </div>
+    </div>
+  </header>
+</main>
+<script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    
+
+</body></html>

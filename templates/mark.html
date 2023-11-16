@@ -23,13 +23,13 @@
     <h1> Здраствуйте, {{name}}! </h1>
     <br>
     <div class="buttons">
-      <a href="#" class="btn btn-outline-primary">Домашнее задание</a>
+      <a href="/homework" class="btn btn-outline-primary">Домашнее задание</a>
       <a href="#" class="btn btn-primary">оценки</a>
     </div>
     <br>
     <br>
     <div class = "marks">
-      {% if ans %}
+      {% if ans|length == 0 %}
         <h4> нет оценок </h1><!-- ПРАВИТЬ -->
       {% else %}
         {% for i in ans %}

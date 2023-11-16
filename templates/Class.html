@@ -5,23 +5,12 @@
       
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Страница учителя</title>
+    <title>Страница учителя(просмотр оценок)</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="”icon”" href="”/home/anyka/.cache/.fr-lhC1NB/favicon-32x32.png”" type="”image/x-icon”">
     <style>
       .mb-3{
         font-family: 'Bradley Hand';
-      }
-      /* body { 
-      background-image: url('background.png');
-      background-size:100%;
-      /* } */
-      .h6{
-         margin-top: 10px;
-      }
-      .button{
-        margin-top: 10px;
-        display:inline-block;
       }
       .dropbtn {
   /*background-color: #04AA6D;*/
@@ -57,41 +46,43 @@
 .dropdown:hover .dropdown-content {display: block;}
 
 .dropdown:hover .dropbtn {background-color: #FFA500;}     
-
-</style>
-
-    
-    <!-- Custom styles for this template -->
-    <link href="{{url_for('static', filename='styles/reg.css')}}" rel="stylesheet">
-  </head>
-  <body class="d-flex align-items-center py-4 bg-body-tertiary">
-    
-    
+    </style>
 <main class="form-signin w-100 m-auto">
-  <header>
-    <div class="dropdown">
-        <button class="dropbtn" style="margin-bottom: 20px;">👤</button>
-        <div class="dropdown-content">
-          <a href="#">Link 1</a>
-          <a href="#">Link 2</a>
-          <a href="#">Link 3</a>
-        </div>
-    </div>
-  </header>
-  <form method="POST">
-    <h1 class="mb-3">Здравствуйте, {{name}}!</h1>
-    {% if ans|length == 0 %}
-      <h1 class="mb-3">У вас нет класов</h1>
-    {% else %}
+    <header>
+      <div class="dropdown">
+          <button class="dropbtn" >👤</button>
+          <div class="dropdown-content">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+      </div>
+    </header>
+<body>
+
+<div class="container mt-3">
+  <h2 class="mb-3" style="margin-top: 30px;">{{name}}</h2>
+  <p></p>            
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        {% for i in names %}
+        <th>{{i}}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
       {% for i in ans %}
-      <a class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px; display:inline-block;' href="/classes/{{i[1]}}">{{i[0]}}</a>
+      <tr>
+        {% for j in ans[i]%}
+        <td>{{j}}</td>
+        {% endfor %}
+      </tr>
       {% endfor %}
-    {% endif %}
-    <a class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px; display:inline-block;' href="/classes/add">Добавить класс</a>
-  </form>
-</main>
+    </tbody>
+  </table>
+</div>
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-
-    
-
-</body></html>
+</body>
+</main>
+</html>

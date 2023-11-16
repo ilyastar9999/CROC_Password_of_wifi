@@ -22,6 +22,7 @@ def parse_data(field):
 #db.delete_all()
 #db.create_all()
 
+print("create all")
 app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -54,8 +55,6 @@ def confirm_token(token):
 #    try:
     return jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")["name"]
 
-
-
 def check_jwt(token, username):
     try:
         payload = jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")
@@ -76,27 +75,6 @@ def get_role(username):
     elif username == "schoolsilaeder@gmail.com":
         return "admin"
 
-@app.route("/user", methods=["GET"])
-def user():
-    token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login", code=302)
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token')
-        return redirect("/login", code=302)
-    role = role(email)
-    if not role:
-        flash('Invalid token')
-        return redirect("/login", code=302)
-    data = db.get_user_by_email(email)
-    if data != []:
-        return render_template("user.html", data=data)
-    else:
-        flash('User not found')
-        return redirect("/login", code=403)
-
 @app.route("/marks", methods=["GET"])
 def marks():
     token = request.cookies.get("jwt")
@@ -111,8 +89,8 @@ def marks():
     if role == "student":
         marks = db.get_marks(email)
         name = db.get_name(email)
-        return render_template("marks.html", ans=marks, name = name)
-    if role == "teacher":
+        return render_template("mark.html", ans=marks, name = name)
+    if role == "teacher" or role == 'admin':
         return redirect("/", code=302)
 
 @app.route("/homework", methods=["GET"])
@@ -129,15 +107,14 @@ def homeworks():
     if role == "student":
         homeworks = db.get_homework(email)
         name = db.get_name(email)
-        return render_template("index.html", ans=homeworks, name = name)
-    if role == "teacher":
+        return render_template("homework.html", ans=homeworks, name = name)
+    if role == "teacher" or role == 'admin':
         return redirect("/", code=302)
-    if role == "admin":
-        return redirect('/admin', code=302)
     
 
 @app.route('/', methods=['GET'])
 def main():
+    print('eeee')
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
@@ -152,12 +129,10 @@ def main():
         return redirect("/login", code=302)
     if role == "student":
         return redirect("/homework", code=302)
-    if role == "teacher":
+    if role == "teacher" or role == "admin":
         classes = db.get_classes_by_teacher(email)
         name = db.get_name(email)
-        return render_template("index.html", classes=classes, name = name)
-    if role == "admin":
-        return redirect('/admin', code=302)
+        return render_template("Main Teacher.html", classes=classes, name=name)
         
 
 @app.route("/login", methods=["GET", "POST"])
@@ -286,57 +261,22 @@ def logout():
 @app.route('/classes/add', methods=['GET', 'POST'])
 def class_add():
     if request.method == 'GET':
-        token = request.cookies.get("jwt")
-        if not token:
-            flash('You are not logged in')
-            return redirect("/login", code=302)
-        email = confirm_token(token)
-        if not email:
-            flash('Invalid token')
-            return redirect("/login", code=302)
-        role = role(email)
-        if not role:
-            flash('Invalid token')
-            return redirect("/login", code=302)
-        if role == 'teacher':
-            return render_template('class_add.html')
-        else:
-            flash("Asset denied")
-            return redirect('/', code=403)
+        return render_template('class_add.html')
     else:
-        token = request.cookies.get("jwt")
-        if not token:
-            flash('You are not logged in')
-            return redirect("/login", code=302)
-        email = confirm_token(token)
-        if not email:
-            flash('Invalid token')
-            return redirect("/login", code=302)
-        role = role(email)
-        if not role:
-            flash('Invalid token')
-            return redirect("/login", code=302)
-        if role != 'teacher':
-            flash("Asset denied")
-            return redirect('/', code=403)
         form = request.form
         name = form['name']
         if name == "":
             flash("Class name is required")
-            return redirect('/classes/add', code=302)
+            return redirect('/class/add', code=302)
         password = form['password']
         if password == "":
             for i in range(random.randint(4, 10)):
                 password += random.choice('qwertyuiopasdfghjklzxcvbnmQAZWSXEDCRFVTGBYHNUJMIK,OL.P_()')
-        if db.create_class(name, password, email):
-            flash("Class created successfully")
-            return redirect('/', code=200)
-
 
 @app.route('/classes/<id>', methods=['GET'])
 def class_view(id):
     data = db.get_class_by_id(id)
-    return render_template('class_view.html', data=data)
+    return render_template('Class.html', data=data)
 
 @app.route('/classes/<id>/add_student', methods=['GET', 'POST'])
 def add_student():
@@ -457,4 +397,6 @@ def edit_marks(id):
         pass
 
 if __name__== '__main__':
+    print('start')
     app.run("0.0.0.0", port=11702, debug=True)
+

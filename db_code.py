@@ -17,7 +17,7 @@ conn = psycopg2.connect(
     user=user,
     password=password
 )
-
+print('sucsessful connect to db')
 #conn = sqlite3.connect('db.sql')
 
 cursor = conn.cursor()
@@ -29,6 +29,12 @@ def parse_data(field):
     data = json.load(file)[field]
 
     return data
+
+def get_all_users():
+    query = """SELECT * FROM users;"""
+    cursor.execute(query)
+    conn.commit()
+    return cursor.fetchall()
 
 def create_user(name, password, email):
     try:
@@ -62,7 +68,7 @@ def check_not_auth_user_is_exist(username):
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject SEREAL, class_id SERIAL);""",  
+    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject INTEGER, name TEXT);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
 """CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
@@ -85,7 +91,7 @@ def delete_all():
     return True
 
 def get_is_user_logged_in(username, password):
-    sqlite3_select_query = """SELECT auth FROM users WHERE email =%s AND password =%s;"""
+    sqlite3_select_query = """SELECT auth FROM users WHERE email=%s AND password=%s;"""
     cursor.execute(sqlite3_select_query, (username, password, ))
     conn.commit()
     ans = cursor.fetchall()
@@ -121,8 +127,12 @@ def get_name(email):
     return cursor.fetchall()[0][0]
 
 def get_classes_by_teacher(email):
-    sqlite3_select_query = """SELECT name FROM classes WHERE %s IN teachers;"""
-    cursor.execute(sqlite3_select_query, (email, ))
+    if email == "schoolsilaeder@gmail.com":
+        sqlite3_select_query = """SELECT name FROM classes;"""
+        cursor.execute(sqlite3_select_query)
+    else:
+        sqlite3_select_query = """SELECT name FROM classes WHERE %s = ANY(teachers);"""
+        cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     return cursor.fetchall()
 
@@ -206,10 +216,14 @@ def get_marks_by_class(id_class):
     cursor.execute(query, (id_class, ))
     conn.commit()
     members = cursor.fetchall()
-    ans = {}
-    for i in members:
-        query = """SELECT subject, value FROM marks WHERE class_id = %s AND email = %s;"""
-        cursor.execute(query, (id_class, i, ))
+    query = """SELECT name FROM marks WHERE subject = %s ORDER BY name;"""
+    ans = [''] + cursor.fetchall()
+    for i in range(len(members)):
+        query = """SELECT value FROM marks WHERE class_id = %s AND email = %s ORDER BY name;"""
+        cursor.execute(query, (id_class, members[i], ))
         conn.commit()
-        ans[i] = {a: b for a, b, in cursor.fetchall()}
+        ans.append([members[i]] + cursor.fetchall())
     return ans
+
+#DEBUG
+print(get_all_users())

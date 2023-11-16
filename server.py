@@ -419,7 +419,7 @@ def edit_homework(id):
         return redirect("/login", code=302)
     if role == 'teacher':
         if request.method == 'GET':
-            return render_template('class_add.html')
+            return render_template('edit_homework.html')
         else:
             form = request.form
             text = form['text']

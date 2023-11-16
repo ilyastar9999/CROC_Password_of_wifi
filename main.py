@@ -330,7 +330,7 @@ def change_password():
                 return redirect('/change_password')
 
             flash('Updated password sucsesfuly')
-            #add password update db
+            db.change_password(email, password)
             return redirect('/')
         else:
             flash("Invalid old password")

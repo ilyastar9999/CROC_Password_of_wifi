@@ -16,17 +16,24 @@
   </style>
 </head>
   <body>
+    {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <script>alert("{{message}}");</script>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
     <div class="container">
       <form action = "/change_password" method="POST">
         <h1> Измнение пароля</h1>
         <br>
         <br>
         <br>
-        <input name = 'old_pass' class="form-control" placeholder='старый пароль'></input>
+        <input type="password" name = 'old_pass' class="form-control" placeholder='старый пароль'></input>
         <br>
-        <input name = 'new_pass' class="form-control" placeholder='новый пароль'></input>
+        <input type="password" name = 'new_pass' class="form-control" placeholder='новый пароль'></input>
         <br>
-        <input name = 'new_pass2' class="form-control" placeholder='повтор нового пароля'></input>
+        <input type="password" name = 'new_pass2' class="form-control" placeholder='повтор нового пароля'></input>
         <br>
         <div class = "row">
             <div class = "col-sm">

@@ -6,7 +6,7 @@ import re
 from werkzeug.utils import secure_filename
 import os
 import parse
-#import db_code as db
+import db_code as db
 import random
 
 app = Flask(__name__)
@@ -25,9 +25,9 @@ def parse_data(field):
 app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'silaederprojects@gmail.com'  
-app.config['MAIL_DEFAULT_SENDER'] = 'silaederprojects@gmail.com'  
-#app.config['MAIL_PASSWORD'] = parse_data("mail_password")
+app.config['MAIL_USERNAME'] = 'schoolsilaeder@gmail.com'  
+app.config['MAIL_DEFAULT_SENDER'] = 'schoolsilaeder@gmail.com'  
+app.config['MAIL_PASSWORD'] = parse_data("mail_password")
 app.config['UPLOAD_FOLDER'] = './static/'
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -51,10 +51,16 @@ def generate_confirmation_token(email):
 
 
 def confirm_token(token):
+<<<<<<< HEAD
     try:
         return jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")["name"]
     except:
     	return False
+=======
+#    try:
+    return jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")["name"]
+
+>>>>>>> c9e73029c01d75ef98924eb0e90a7ed07f5e223f
 
 
 def check_jwt(token, username):
@@ -68,13 +74,13 @@ def check_jwt(token, username):
     else:
         return False
 
-def role(username):
+def get_role(username):
     data, data1 = parse.parse_csv()
     if username in data:
         return "student"
     elif username in data1:
         return "teacher"
-    elif username == "admin":
+    elif username == "schoolsilaeder@gmail.com":
         return "admin"
 
 @app.route("/user", methods=["GET"])
@@ -108,7 +114,7 @@ def marks():
     if not email:
         flash('Invalid token')
         return redirect("/login", code=302)
-    role = role(email)
+    role = get_role(email)
     if role == "student":
         marks = db.get_marks(email)
         name = db.get_name(email)
@@ -126,13 +132,16 @@ def homeworks():
     if not email:
         flash('Invalid token')
         return redirect("/login", code=302)
-    role = role(email)
+    role = get_role(email)
     if role == "student":
         homeworks = db.get_homework(email)
         name = db.get_name(email)
         return render_template("index.html", ans=homeworks, name = name)
     if role == "teacher":
         return redirect("/", code=302)
+    if role == "admin":
+        return redirect('/admin', code=302)
+    
 
 @app.route('/', methods=['GET'])
 def main():
@@ -144,16 +153,18 @@ def main():
     if not email:
         flash('Invalid token')
         return redirect("/login", code=302)
-    role = role(email)
+    role = get_role(email)
     if not role:
         flash('Invalid token')
         return redirect("/login", code=302)
     if role == "student":
-        return redirect("/homeworks", code=302)
+        return redirect("/homework", code=302)
     if role == "teacher":
         classes = db.get_classes_by_teacher(email)
         name = db.get_name(email)
         return render_template("index.html", classes=classes, name = name)
+    if role == "admin":
+        return redirect('/admin', code=302)
         
 
 @app.route("/login", methods=["GET", "POST"])
@@ -166,7 +177,7 @@ def login():
         password = request.form["password"]
 
         if db.get_is_user_logged_in(login, password):
-            token = jwt.encode(payload={"name": login, "role": role(login), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
+            token = jwt.encode(payload={"name": login, "role": get_role(login), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
             resp = make_response(redirect("/"))
             resp.set_cookie("jwt", token)
             return resp
@@ -261,7 +272,7 @@ def confirm_email(token):
     if db.check_not_auth_user_is_exist(username) == []:
         flash('This is link for not registered account')
         return redirect('/registration', code=302)
-    token = jwt.encode(payload={"name": username, "role": role(username), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
+    token = jwt.encode(payload={"name": username, "role": get_role(username), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
     if db.check_auth_user(username):
         print(db.check_auth_user(username))
         flash('Account already confirmed . Please login')
@@ -428,8 +439,8 @@ def edit_homework(id):
         flash("Asset denied")
         return redirect('/', code=403)
 
-@app.route('/classes/<id>/student/<student_id>', methods=['GET'])
-def view_student(id, student_id):
+@app.route('/classes/<id>/edit_marks/', methods=['GET', 'POST'])
+def edit_marks(id):
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
@@ -445,10 +456,12 @@ def view_student(id, student_id):
     if role != 'teacher':
         flash("Asset denied")
         return redirect('/', code=403)
-    stu_data = db.get_student_by_id_in_class(id, student_id)
-    marks = db.get_stydent_marks_in_class(id, student_id)
-    return render_template('student.html')
+    if request.method == 'GET':
+        data = db.get_marks_by_class(id)
+        return render_template('edit_marks.html', data=data)
+    else:
+        form = request.form
+        pass
 
-#
 if __name__== '__main__':
     app.run("0.0.0.0", port=11702, debug=True)

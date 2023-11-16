@@ -62,15 +62,16 @@ def check_not_auth_user_is_exist(username):
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject SEREAL);""",  
+    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject SEREAL, class_id SERIAL);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
 """CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
+    cursor.execute(sqlite_select_query[2])
     conn.commit() 
     try:
-        create_user("admin", "silaederprojects@gmail.com", parse_data("secret_key"), "Admin", "Adminovich")
-        auth_user('admin')
+        create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
+        auth_user('schoolsilaeder@gmail.com')
     except:
         pass
     return
@@ -84,7 +85,7 @@ def delete_all():
     return True
 
 def get_is_user_logged_in(username, password):
-    sqlite3_select_query = """SELECT auth FROM users WHERE username =%s AND password =%s;"""
+    sqlite3_select_query = """SELECT auth FROM users WHERE email =%s AND password =%s;"""
     cursor.execute(sqlite3_select_query, (username, password, ))
     conn.commit()
     ans = cursor.fetchall()
@@ -95,7 +96,7 @@ def get_is_user_logged_in(username, password):
         return False
     
 def get_homework(username):
-    sqlite3_select_query = """SELECT name, homework FROM classes WHERE %s IN members;"""
+    sqlite3_select_query = """SELECT name, homework FROM classes WHERE %s = ANY(members);"""
     cursor.execute(sqlite3_select_query, (username, ))
     conn.commit()
     return cursor.fetchall()
@@ -199,40 +200,16 @@ def add_teacher(id, email):
         return True
     except:
         return False
-    
-def get_student_by_id_in_class(id_class, id_student):
-    query = """SELECT members FROM classes WHERE id_class = %s;"""
+
+def get_marks_by_class(id_class):
+    query = """SELECT members FROM classes WHERE id = %s;"""
     cursor.execute(query, (id_class, ))
     conn.commit()
-    query = """SELECT * FROM users WHERE email = %s;"""
-    cursor.execute(query, (cursor.fetchall()[0][id_student], ))
-    conn.commit()
-    return cursor.fetchall()
-
-def get_stydent_marks_in_class(id_class, id_student):
-    query = """SELECT members FROM classes WHERE id_class = %s;"""
-    cursor.execute(query, (id_class, ))
-    conn.commit()
-    query = """SELECT value FROM marks WHERE email = %s;"""
-    cursor.execute(query, (cursor.fetchall()[0][id_student], ))
-    conn.commit()
-    return cursor.fetchall()
-
-def get_count_of_class_members(id_class):
-    query = """SELECT count(members) FROM classes WHERE id = %s;"""
-    cursor.execute(query, (id_class, ))
-    conn.commit()
-    return cursor.fetchall()[0][0]
-
-def add_mark(value, id_class, id_student):
-    try:
-        data = get_student_by_id_in_class(id_class, id_student)
-        query = """SELECT members FROM classes WHERE id_class = %s;"""
-        cursor.execute(query, (id_class, ))
+    members = cursor.fetchall()
+    ans = {}
+    for i in members:
+        query = """SELECT subject, value FROM marks WHERE class_id = %s AND email = %s;"""
+        cursor.execute(query, (id_class, i, ))
         conn.commit()
-        query = """INSERT INTO marks (value, subject, email) VALUES (%s, %s, %s);"""
-        cursor.execute(query, (value, id_class, data[0][-1]))
-        conn.commit()
-        return True
-    except:
-        return False
+        ans[i] = {a: b for a, b, in cursor.fetchall()}
+    return ans

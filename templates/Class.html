@@ -41,13 +41,6 @@
   display: block;
 }
 
-.stas{
-    border: 2px solid blue;
-    padding-top: 20px;
-    padding-left: 20px;
-    border-radius: 30px;
-}
-
 .dropdown-content a:hover {background-color: #ddd;}
 
 .dropdown:hover .dropdown-content {display: block;}
@@ -69,13 +62,22 @@
 
 <div class="container mt-3">
   <h2 class="mb-3" style="margin-top: 30px;">{{name}}</h2>
-  <div class = 'stas'>
+  <p></p>           
+  
+  <div class = "row">
+    <div class = "col-sm">
+      <a class = "btn btn-primary" href="/classes/{{id}}/edit_marks"> Редактировать оценки </a>
+    </div>
 
-    <p class="mb-3">Ссылка для вступления в класс: <a href="#">/class/{{id}}/add_student/</a></p>
-    <p class="mb-3">Пароль для вступления в класс:{{password}}</p>
+    <div class = "col-sm">
+      <a class = "btn btn-primary" href="/classes/{{id}}/edit_homework"> Редактировать домашнее задание </a>
+    </div>
 
-  </div>     
-  <h5 style="margin-top: 20px;">Список класса</h5>       
+    <div class = "col-sm">
+      <a class = "btn btn-primary" href="/classes/{{id}}/add_teacher"> Добавить учителя </a>
+    </div>
+  </div>
+  <br>
   <table class="table table-striped">
     <thead>
       <tr>

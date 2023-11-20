@@ -64,9 +64,12 @@
     <div class="dropdown">
         <button class="dropbtn" >👤</button>
         <div class="dropdown-content">
-          <a href="#">Link 1</a>
-          <a href="#">Link 2</a>
-          <a href="#">Link 3</a>
+          <a href="/">Домой</a>
+          <a href="/change_password">Изменить пароль</a>
+          {% if admin %}
+          <a href="/admin">Панель админа</a>
+          {% endif %}
+          <a href="/logout" >Выйти из аккаунта</a>
         </div>
     </div>
   </header>
@@ -75,7 +78,7 @@
     <br>
     <div class="buttons">
       <a href="/homework" class="btn btn-outline-primary">Домашнее задание</a>
-      <a href="#" class="btn btn-primary">оценки</a>
+      <a href="#" class="btn btn-primary">Оценки</a>
     </div>
     <br>
     <br>

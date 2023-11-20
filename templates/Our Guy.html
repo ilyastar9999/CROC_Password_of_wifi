@@ -50,7 +50,9 @@
 .dropdown:hover .dropdown-content {display: block;}
 
 .dropdown:hover .dropbtn {background-color: #FFA500;}     
-
+a{
+  color: black;
+}
 
     </style>
 
@@ -66,9 +68,12 @@
     <div class="dropdown">
         <button class="dropbtn" >👤</button>
         <div class="dropdown-content">
-          <a href="#">Link 1</a>
-          <a href="#">Link 2</a>
-          <a href="#">Link 3</a>
+          <a href="/">Домой</a>
+          <a href="/change_password">Изменить пароль</a>
+          {% if admin %}
+          <a href="/admin">Панель админа</a>
+          {% endif %}
+          <a href="/logout" >Выйти из аккаунта</a>
         </div>
     </div>
   </header>

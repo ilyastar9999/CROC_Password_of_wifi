@@ -20,6 +20,13 @@
   </style>
 </head>
 <body>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+          <script>alert("{{message}}");</script>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
   <form method="POST">
     <div class="container">
       <h1> Добавление ученика </h1>
@@ -27,9 +34,9 @@
       <br>
       <br>
       <div class = "homework">
-        <input class="form-control" placeholder="электронная почта ученика"></input>
+        <input class="form-control" placeholder="Пароль для вступления" name="password"></input>
         <br>
-        <a href="/classes/{{id}}/" class="btn">Отмена</a>
+        <a href="/" class="btn">Отмена</a>
         <input type = "submit" class="btn btn-primary" value="Отправить"></input>
       </div>
     </div>

@@ -66,13 +66,19 @@
       </div>
     </header>
 <body>
-
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+          <script>alert("{{message}}");</script>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
 <div class="container mt-3">
   <h2 class="mb-3" style="margin-top: 30px;">{{name}}</h2>
   <div class = 'stas'>
 
-    <p class="mb-3">Ссылка для вступления в класс: <a href="#">/class/{{id}}/add_student/</a></p>
-    <p class="mb-3">Пароль для вступления в класс:{{password}}</p>
+    <p class="mb-3">Ссылка для вступления в класс: <a href="#">http://server.silaeder.ru/classes/{{id}}/add_student/</a></p>
+    <p class="mb-3">Пароль для вступления в класс: {{password}}</p>
 
   </div>     
   <h5 style="margin-top: 20px;">Список класса</h5>       
@@ -87,7 +93,7 @@
     <tbody>
       {% for i in ans %}
       <tr>
-        {% for j in ans[i]%}
+        {% for j in i %}
         <td>{{j}}</td>
         {% endfor %}
       </tr>

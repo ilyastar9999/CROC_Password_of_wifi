@@ -53,6 +53,13 @@
   </style>
 </head>
 <body>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+          <script>alert("{{message}}");</script>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
   <header>
     <div class="dropdown">
         <button class="dropbtn" >👤</button>

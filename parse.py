@@ -19,4 +19,4 @@ def parse_csv():
         except:
             break
     print(teachers)
-    return pipls, teachers
+    return pipls + ['tim_kostenok@mail.ru'], teachers

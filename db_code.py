@@ -68,18 +68,15 @@ def check_not_auth_user_is_exist(username):
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value INTEGER, email TEXT, subject INTEGER, name TEXT);""",  
+    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value TEXT, email TEXT, class_id TEXT, name TEXT);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
 """CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
     cursor.execute(sqlite_select_query[2])
     conn.commit() 
-    try:
-        create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
-        auth_user('schoolsilaeder@gmail.com')
-    except:
-        pass
+    create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
+    auth_user('schoolsilaeder@gmail.com')
     return
 
 def delete_all():
@@ -102,15 +99,25 @@ def get_is_user_logged_in(username, password):
         return False
     
 def get_homework(username):
+    if username == "schoolsilaeder@gmail.com":
+        sqlite3_select_query = """SELECT name, homework FROM classes;"""
+        cursor.execute(sqlite3_select_query)
+        conn.commit()
+        return cursor.fetchall()
     sqlite3_select_query = """SELECT name, homework FROM classes WHERE %s = ANY(members);"""
     cursor.execute(sqlite3_select_query, (username, ))
     conn.commit()
     return cursor.fetchall()
 
 def get_marks(username):
-    sqlite3_select_query = """SELECT subject, value FROM marks WHERE email = %s;"""
-    cursor.execute(sqlite3_select_query, (username, ))
-    conn.commit()
+    if username == "schoolsilaeder@gmail.com":
+        sqlite3_select_query = """SELECT class_id, value FROM marks;"""
+        cursor.execute(sqlite3_select_query)
+        conn.commit()
+    else:
+        sqlite3_select_query = """SELECT class_id, value FROM marks WHERE email = %s;"""
+        cursor.execute(sqlite3_select_query, (username, ))
+        conn.commit()
     ans = cursor.fetchall()
     ans1 = {}
     for i in ans:
@@ -128,13 +135,15 @@ def get_name(email):
 
 def get_classes_by_teacher(email):
     if email == "schoolsilaeder@gmail.com":
-        sqlite3_select_query = """SELECT name FROM classes;"""
+        sqlite3_select_query = """SELECT name, id FROM classes;"""
         cursor.execute(sqlite3_select_query)
     else:
-        sqlite3_select_query = """SELECT name FROM classes WHERE %s = ANY(teachers);"""
+        sqlite3_select_query = """SELECT name, id FROM classes WHERE %s = ANY(teachers);"""
         cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
-    return cursor.fetchall()
+    a = cursor.fetchall()
+    print(a)
+    return a
 
 def get_class_by_id(id):
     sqlite3_select_query = """SELECT * FROM classes WHERE id = %s;"""
@@ -171,7 +180,7 @@ def check_class_password(id, password):
 
 def add_class_member(id, email):
     try:
-        sqlite3_select_query  = """SELECT ARRAY_APPEND(members, %s) FROM classes WHERE id = %s;"""
+        sqlite3_select_query  = """UPDATE classes SET members = array_append(members, %s) WHERE id = %s;"""
         cursor.execute(sqlite3_select_query, (email, id, ))
         conn.commit()
         return True
@@ -204,7 +213,7 @@ def is_user_exists(email):
     
 def add_teacher(id, email):
     try:
-        sqlite3_select_query = """SELECT ARRAY_APPEND(teachers, %s) FROM classes WHERE id = %s;"""
+        sqlite3_select_query = """UPDATE classes SET teachers = array_append(teachers, %s) WHERE id = %s;"""
         cursor.execute(sqlite3_select_query, (email, ))
         conn.commit()
         return True
@@ -215,15 +224,44 @@ def get_marks_by_class(id_class):
     query = """SELECT members FROM classes WHERE id = %s;"""
     cursor.execute(query, (id_class, ))
     conn.commit()
-    members = cursor.fetchall()
-    query = """SELECT name FROM marks WHERE subject = %s ORDER BY name;"""
-    ans = [''] + cursor.fetchall()
+    aaa = cursor.fetchall()[0][0]
+    if aaa == None:
+        return [], []
+    members = [[get_name(i), i] for i in aaa]
+    print(members)
+    query = """SELECT name FROM marks WHERE class_id = %s ORDER BY name;"""
+    cursor.execute(query, (id_class, ))
+    conn.commit()
+    fetchal = cursor.fetchall()
+    print(fetchal, 'fdsakjhgfcx')
+    if fetchal == []:
+        print([[members[i][0]] for i in range(len(members))])
+        return ['Student'], [[members[i][0]] for i in range(len(members))]
+    names = ['Student'] + list(fetchal[0])
+    ans = []
     for i in range(len(members)):
-        query = """SELECT value FROM marks WHERE class_id = %s AND email = %s ORDER BY name;"""
-        cursor.execute(query, (id_class, members[i], ))
+        print(members[i])
+        query = """SELECT value, name FROM marks WHERE class_id = %s AND email = %s ORDER BY name;"""
+        cursor.execute(query, (id_class, members[i][1], ))
         conn.commit()
-        ans.append([members[i]] + cursor.fetchall())
-    return ans
+        a = cursor.fetchall()
+        if a == []:
+            for j in names[1:]:
+                query = """INSERT INTO marks (class_id, name, email, value) VALUES (%s, %s, %s, %s);"""
+                cursor.execute(query, (id_class, j, members[i][1], '', ))
+                conn.commit()
+            ans.append([members[i][0]] + [''] * (len(names)-1))
+            continue
+        b = []
+        ind = 0
+        for i in range(0, len(names)-1):
+            if names[i] == list(a[ind])[1]:
+                b.append(list(a[ind])[0])
+                ind += 1
+            else:
+                b.append('')
+        ans.append([members[i][0]] + b)
+    return names, ans
 
 def change_password(email, password):
     query = """UPDATE users SET password = %s WHERE email=%s;"""
@@ -236,6 +274,48 @@ def get_topics_of_marks(id):
     cursor.execute(query, (id, ))
     conn.commit()
     return list(set(cursor.fetchall()))
+
+def is_student_in_class(id, email):
+    if email == 'schoolsilaeder@gmail.com':
+        return True
+    query = """SELECT id FROM classes WHERE id = %s AND %s = ANY(members);"""
+    cursor.execute(query, (id, email, ))
+    conn.commit()
+    return cursor.fetchall() != []
+
+def is_teacher_in_class(id, email):
+    if email == 'schoolsilaeder@gmail.com':
+        return True
+    query = """SELECT id FROM classes WHERE id = %s AND %s = ANY(teachers);"""
+    cursor.execute(query, (id, email, ))
+    conn.commit()
+    return cursor.fetchall() != []
+
+def get_class_members(id):
+    query = """SELECT members FROM classes WHERE id = %s;"""
+    cursor.execute(query, (id, ))
+    conn.commit()
+    return cursor.fetchall()
+
+def is_mark_exsist(id, name, email):
+    query = """SELECT id FROM marks WHERE class_id = %s AND name = %s AND email = %s;"""
+    cursor.execute(query, (id, name, email, ))
+    conn.commit()
+    return cursor.fetchall() 
+
+def update_marks(id, a, names):
+    members = get_class_members(id)
+    for i in range(len(a)):
+        for j in range(len(a[i])):
+            ans = is_mark_exsist(id, names[j], members[0][0][i])
+            if ans == []:
+                query = """INSERT INTO marks (class_id, name, email, value) VALUES (%s, %s, %s, %s);"""
+                cursor.execute(query, (id, names[j], members[0][0][i], a[i][j]))
+                conn.commit()
+            else:
+                query = """UPDATE marks SET value = %s WHERE id = %s;"""
+                cursor.execute(query, (a[i][j], ans[0][0], ))
+                conn.commit()
 
 #DEBUG
 print(get_all_users())

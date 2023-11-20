@@ -51,6 +51,9 @@
   text-decoration: none;
   display: block;
 }
+a{
+  color: black;
+}
 
 .dropdown-content a:hover {background-color: #ddd;}
 
@@ -70,11 +73,14 @@
 <main class="form-signin w-100 m-auto">
   <header>
     <div class="dropdown">
-        <button class="dropbtn" style="margin-bottom: 20px;">👤</button>
+        <button class="dropbtn" >👤</button>
         <div class="dropdown-content">
-          <a href="#">Link 1</a>
-          <a href="#">Link 2</a>
-          <a href="#">Link 3</a>
+          <a href="/">Домой</a>
+          <a href="/change_password">Изменить пароль</a>
+          {% if admin %}
+          <a href="/admin">Панель админа</a>
+          {% endif %}
+          <a href="/logout" >Выйти из аккаунта</a>
         </div>
     </div>
   </header>

@@ -16,22 +16,72 @@
       #h{
         border: 5px color skyblue;
       }
+      .dropbtn {
+  /*background-color: #04AA6D;*/
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border-radius: 50px;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #FFA500;}     
+a{
+  color: black;
+}
 
   </style>
 </head>
 <body>
+  <header>
+    <div class="dropdown">
+        <button class="dropbtn" >👤</button>
+        <div class="dropdown-content">
+          <a href="/">Домой</a>
+          <a href="/change_password">Изменить пароль</a>
+          {% if admin %}
+          <a href="/admin">Панель админа</a>
+          {% endif %}
+          <a href="/logout" >Выйти из аккаунта</a>
+        </div>
+    </div>
+  </header>
   <div class="container">
     <h1> Здраствуйте, {{name}}! </h1>
     <br>
     <div class="buttons">
       <a href="#" class="btn btn-primary">Домашнее задание</a>
-      <a href="/marks" class="btn btn-outline-primary">оценки</a>
+      <a href="/marks" class="btn btn-outline-primary"> Оценки</a>
     </div>
     <br>
     <br>
     <div class = "homework">
       {% if ans|length == 0 %}
-        <h4> нет дз </h1><!-- ПРАВИТЬ -->
+        <h4> Нет дз </h1><!-- ПРАВИТЬ -->
       {% else %}
         {% for i in ans %}
           <div class = "border border-primary rounded" id = "h">

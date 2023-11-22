@@ -150,7 +150,7 @@ def login():
             resp.set_cookie("jwt", token)
             return resp
         else:
-            flash('Wrong email or password')
+            flash('Wrong email or password or account not found/confirmed')
             return redirect("/login", code=302)
     
 @app.route('/register', methods=['GET', 'POST'])
@@ -372,18 +372,18 @@ def add_teacher(id):
     if not email:
         flash('Invalid token, please relogin')
         return redirect("/login", code=302)
-    role = role(email)
+    role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
         return redirect("/login", code=302)
-    if role != 'teacher':
+    if role == 'student':
         flash("Asset denied")
         return redirect('/', code=403)
     if not db.is_teacher_in_class(id, email):
         flash("Asset denied")
         return redirect('/', code=403)
     if request.method == 'GET':
-        return render_template('add_teacher.html')
+        return render_template('add_teacher.html', id=id)
     else:
         form = request.form
         email = form['email']
@@ -410,19 +410,19 @@ def edit_homework(id):
     if not email:
         flash('Invalid token, please relogin')
         return redirect("/login", code=302)
-    role = role(email)
+    role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
         return redirect("/login", code=302)
-    if role == 'teacher':
+    if role != 'student' and db.is_teacher_in_class(id, email):
         if request.method == 'GET':
-            return render_template('edit_homework.html')
+            return render_template('edit_homework.html', id=id)
         else:
             form = request.form
             text = form['text']
             if db.update_homework(id, text):
                 flash('Homework updated successfully')
-                redirect(f"/classes/{id}", code=200)
+                return redirect(f"/classes/{id}", code=200)
             else:
                 return 'ERROR'
     else:
@@ -449,9 +449,10 @@ def edit_marks(id):
     if role == 'student':
         flash("Asset denied")
         return redirect('/', code=403)
-    if db.get_class_members(id) == []:
+    if db.get_class_members(id)[0][0] == None:
         flash('Nobody in class. Please add members to your class')
         return redirect(f'/classes/{id}/', code=403)
+    print(db.get_class_members(id)[0][0])
     if request.method == 'GET':
         names, ans = db.get_marks_by_class(id)
         print(names, ans)
@@ -459,11 +460,13 @@ def edit_marks(id):
     else:
         #try:
         form = dict(request.form)
+        print(form)
         mxi = max([int(i.split('-')[0]) for i in form.keys() if i.find('-') != -1])
         mxj = max([int(i.split('-')[1]) for i in form.keys() if i.find('-') != -1])
         a = [[form[str(i)+'-'+str(j)] for j in range(1, mxj+1)] for i in range(1, mxi+1)]
-        mxn = max([int(i[4:]) for i in form.keys() if i.find('-') == -1])
-        names = [form['name'+str(i)] for i in range(1, mxn+1)]
+        names = request.form.getlist('names[]')
+        print('kjhgfcdxzxfghjkl;lkijyhgfrdsxcvbhnjytredxcv ')
+        print(names)
         db.update_marks(id, a, names)
     #except:
      #       return 'ERROR: EDIT MARK'

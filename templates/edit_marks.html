@@ -74,12 +74,18 @@
 {% endwith %}
 <div class="container mt-3">
   <h2 class="mb-3" style="margin-top: 30px;">Редактирование оценок</h2>
+  <p>Сначало создайте все столбцы, потом уже выстовляйте(иначе всё сотрётся)</p>
+  
   <form method="POST">
   <table class="table table-striped">
     <thead>
       <tr id="th">
-        {% for i in names %}
-        <th>{{i}}</th>
+        {% for j in jss %}
+          {% if j == 0 %}
+          <td>{{names[i]}}</td>
+          {% else %}
+          <td><input name="names[]" value="{{names[j]}}"></td>
+          {% endif %}
         {% endfor %}
       </tr>
     </thead>
@@ -90,7 +96,7 @@
           {% if j == 0 %}
           <td>{{ans[i][j]}}</td>
           {% else %}
-          <td><input name="{{j}}-{{i}}" value="{{ans[i][j]}}"></td>
+          <td><input name="{{j}}-{{i+1}}" value="{{ans[i][j]}}"></td>
           {% endif %}
         {% endfor %}
       </tr>
@@ -116,9 +122,8 @@
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 <script>
   var colums = {{mxj}};  
-  var new_names = 0;
+  var new_names = {{mxi}};
   $('#addCol').click (function () {
-    new_names++;
     var head = document.getElementById('th')
     th.innerHTML += '<td><input name="name' + String(new_names) + '"></td>';
     var rows = document.getElementsByClassName("tb");
@@ -127,6 +132,7 @@
       x.innerHTML += '<td><input name="'+ String(colums) + '-' + String(i+1) + '"></td>';
     }
     colums++;
+    new_names++;
   });
 
   $(document).ready(function() {

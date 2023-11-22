@@ -14,7 +14,7 @@ conn = psycopg2.connect(
     host=host,
     port=port,
     database=database,
-    user=user,
+    user=user, 
     password=password
 )
 print('sucsessful connect to db')
@@ -68,9 +68,9 @@ def check_not_auth_user_is_exist(username):
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value TEXT, email TEXT, class_id TEXT, name TEXT);""",  
+    sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value TEXT, email TEXT, class_id TEXT, name INTEGER);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
-"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY);"""]
+"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY, names TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
     cursor.execute(sqlite_select_query[2])
@@ -94,7 +94,9 @@ def get_is_user_logged_in(username, password):
     ans = cursor.fetchall()
     print(ans)
     if ans != []:
-        return ans[0]
+        if username == 'schoolsilaeder@gmail.com':
+            return True
+        return ans[0][0]
     else:
         return False
     
@@ -194,13 +196,12 @@ def get_user_by_email(email):
     return cursor.fetchall()
 
 def update_homework(id, text):
-    try:
         sqlite3_select_query = """UPDATE classes SET homework = %s WHERE id = %s;"""
-        cursor.execute(sqlite3_select_query, (id, ))
+        cursor.execute(sqlite3_select_query, (text, id, ))
         conn.commit()
         return True
-    except:
-        return False
+    #except:
+     #   return False
 
 def is_user_exists(email):
     sqlite3_select_query = """SELECT * FROM users WHERE email = %s;"""
@@ -229,37 +230,38 @@ def get_marks_by_class(id_class):
         return [], []
     members = [[get_name(i), i] for i in aaa]
     print(members)
-    query = """SELECT name FROM marks WHERE class_id = %s ORDER BY name;"""
+    query = """SELECT names FROM classes WHERE id = %s;"""
     cursor.execute(query, (id_class, ))
     conn.commit()
-    fetchal = cursor.fetchall()
+    fetchal = list(cursor.fetchall()[0])
     print(fetchal, 'fdsakjhgfcx')
-    if fetchal == []:
+    if fetchal == [None]:
         print([[members[i][0]] for i in range(len(members))])
         return ['Student'], [[members[i][0]] for i in range(len(members))]
-    names = ['Student'] + list(fetchal[0])
+    names = ['Student'] + fetchal[0]
     ans = []
     for i in range(len(members)):
-        print(members[i])
+        print(members[i][0])
         query = """SELECT value, name FROM marks WHERE class_id = %s AND email = %s ORDER BY name;"""
         cursor.execute(query, (id_class, members[i][1], ))
         conn.commit()
-        a = cursor.fetchall()
+        a = [list(i) for i in cursor.fetchall()]
+        print(a, 'iuygfd')
         if a == []:
-            for j in names[1:]:
+            print('fix')
+            for j in range(len(names)-1):
                 query = """INSERT INTO marks (class_id, name, email, value) VALUES (%s, %s, %s, %s);"""
                 cursor.execute(query, (id_class, j, members[i][1], '', ))
                 conn.commit()
             ans.append([members[i][0]] + [''] * (len(names)-1))
             continue
         b = []
-        ind = 0
-        for i in range(0, len(names)-1):
-            if names[i] == list(a[ind])[1]:
-                b.append(list(a[ind])[0])
-                ind += 1
+        for k in range(0, len(a)):
+            if a[k][1] == k:
+                b.append(a[k][0])
             else:
                 b.append('')
+        print(names)
         ans.append([members[i][0]] + b)
     return names, ans
 
@@ -304,17 +306,22 @@ def is_mark_exsist(id, name, email):
     return cursor.fetchall() 
 
 def update_marks(id, a, names):
+    print(a)
+    query = """UPDATE classes SET names = %s WHERE id = %s;"""
+    cursor.execute(query, (names, id, ))
+    conn.commit()
     members = get_class_members(id)
-    for i in range(len(a)):
-        for j in range(len(a[i])):
-            ans = is_mark_exsist(id, names[j], members[0][0][i])
+    for j in range(len(a)):
+        for i in range(len(a[j])):
+            print()
+            ans = is_mark_exsist(id, j, members[0][0][i])
             if ans == []:
                 query = """INSERT INTO marks (class_id, name, email, value) VALUES (%s, %s, %s, %s);"""
-                cursor.execute(query, (id, names[j], members[0][0][i], a[i][j]))
+                cursor.execute(query, (id, j, members[0][0][i], a[j][i]))
                 conn.commit()
             else:
                 query = """UPDATE marks SET value = %s WHERE id = %s;"""
-                cursor.execute(query, (a[i][j], ans[0][0], ))
+                cursor.execute(query, (a[j][i], ans[0][0], ))
                 conn.commit()
 
 #DEBUG

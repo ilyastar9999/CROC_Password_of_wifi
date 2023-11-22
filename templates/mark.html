@@ -87,12 +87,12 @@
         <h4> нет оценок </h1><!-- ПРАВИТЬ -->
       {% else %}
         {% for i in ans %}
-          <div class = "border border-primary rounded">
+          <div class = "border border-primary rounded row">
             <h4> {{i[0]}} </h1>
             <!--<p> {{i[1]}} </p>-->
             {% for j in i[1] %}
                 {% if j != '' %}
-                <div class = "border border-primary rounded" id="mark"> {{j}} </div>
+                <div class = "border border-primary rounded col-sm" id="mark"> {{j}} </div>
                 {% endif %}
             {% endfor %}
           </div>

@@ -524,7 +524,7 @@ def change_password():
             if not hasLowerCase:
                 flash("Password must contain at least one lowercase letter")
                 return redirect('/change_password')
-            
+            wf
             if not hasSpecialCharecters:
                 flash("Password must contain at least one special character")
                 return redirect('/change_password')

@@ -125,7 +125,7 @@
   var new_names = {{mxi}};
   $('#addCol').click (function () {
     var head = document.getElementById('th')
-    th.innerHTML += '<td><input name="name' + String(new_names) + '"></td>';
+    th.innerHTML += '<td><input name="names[]"></td>';
     var rows = document.getElementsByClassName("tb");
     for (var i = 0; i < rows.length; i++) {
       var x = rows[i];

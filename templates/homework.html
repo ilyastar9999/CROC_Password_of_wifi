@@ -91,10 +91,12 @@ a{
         <h4> Нет дз </h1><!-- ПРАВИТЬ -->
       {% else %}
         {% for i in ans %}
+          {% if i[1] != None %}
           <div class = "border border-primary rounded" id = "h">
             <h4> {{i[0]}} </h1>
             <p> {{i[1]}} </p>
           </div>
+          {% endif %}
         {% endfor %}
       {% endif %}
     </div>

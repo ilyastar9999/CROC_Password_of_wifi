@@ -90,8 +90,10 @@
           <div class = "border border-primary rounded">
             <h4> {{i[0]}} </h1>
             <!--<p> {{i[1]}} </p>-->
-            {% for j in i[1:] %}
+            {% for j in i[1] %}
+                {% if j != '' %}
                 <div class = "border border-primary rounded" id="mark"> {{j}} </div>
+                {% endif %}
             {% endfor %}
           </div>
         {% endfor %}

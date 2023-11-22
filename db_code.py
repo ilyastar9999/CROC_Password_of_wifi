@@ -123,17 +123,24 @@ def get_marks(username):
     ans = cursor.fetchall()
     ans1 = {}
     for i in ans:
-        if i[0] in ans1.keys():
-            ans1[i[0]] = [i[1]]
-        else:
-            ans1[i[0]].append(i[1])
+        name = get_name_of_class(i[0])
+        if name == False:
+            continue
+        try:
+            ans1[name].append(i[1])
+        except:
+            ans1[name] = [i[0]]
+    print(ans1)
     return ans1
 
 def get_name(email):
     sqlite3_select_query = """SELECT name FROM users WHERE email = %s;"""
     cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
-    return cursor.fetchall()[0][0]
+    ans = cursor.fetchall()
+    if ans != []:
+        return ans[0][0]
+    return False
 
 def get_classes_by_teacher(email):
     if email == "schoolsilaeder@gmail.com":
@@ -215,7 +222,7 @@ def is_user_exists(email):
 def add_teacher(id, email):
     try:
         sqlite3_select_query = """UPDATE classes SET teachers = array_append(teachers, %s) WHERE id = %s;"""
-        cursor.execute(sqlite3_select_query, (email, ))
+        cursor.execute(sqlite3_select_query, (email, id, ))
         conn.commit()
         return True
     except:
@@ -323,6 +330,21 @@ def update_marks(id, a, names):
                 query = """UPDATE marks SET value = %s WHERE id = %s;"""
                 cursor.execute(query, (a[j][i], ans[0][0], ))
                 conn.commit()
+
+def get_homework_by_class_id(id):
+    query = """SELECT homework FROM classes WHERE id = %s;"""
+    cursor.execute(query, (id, ))
+    conn.commit()
+    return cursor.fetchall()
+
+def get_name_of_class(email):
+    sqlite3_select_query = """SELECT name FROM classes WHERE id = %s;"""
+    cursor.execute(sqlite3_select_query, (email, ))
+    conn.commit()
+    ans = cursor.fetchall()
+    if ans != []:
+        return ans[0][0]
+    return False
 
 #DEBUG
 print(get_all_users())

@@ -13,6 +13,8 @@ app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+
 def parse_data(field):
     file = open("config.json")
     data = json.load(file)[field]
@@ -80,36 +82,37 @@ def marks():
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if role == "student":
-        marks = db.get_marks(email)
+        marks = list(db.get_marks(email).items())
+        print(marks)
         name = db.get_name(email)
         return render_template("mark.html", admin=role=='admin', ans=marks, name = name)
     if role == "teacher" or role == 'admin':
-        return redirect("/", code=302)
+        return redirect("/")
 
 @app.route("/homework", methods=["GET"])
 def homeworks():
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if role == "student":
         homeworks = db.get_homework(email)
         name = db.get_name(email)
         return render_template("homework.html", admin=role=='admin', ans=homeworks, name = name)
     if role == "teacher" or role == 'admin':
-        return redirect("/", code=302)
+        return redirect("/")
     
 
 @app.route('/', methods=['GET'])
@@ -118,24 +121,24 @@ def main():
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     if role == "student":
-        return redirect("/homework", code=302)
+        return redirect("/homework")
     if role == "teacher" or role == "admin":
         classes = db.get_classes_by_teacher(email)
         name = db.get_name(email)
         return render_template("Main Teacher.html", admin=role=='admin', ans=classes, name=name)
         
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login/", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
         return render_template("Signin Template.html")
@@ -151,9 +154,9 @@ def login():
             return resp
         else:
             flash('Wrong email or password or account not found/confirmed')
-            return redirect("/login", code=302)
+            return redirect("/login")
     
-@app.route('/register', methods=['GET', 'POST'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
         return render_template('Login Template.html')
@@ -228,7 +231,7 @@ def register():
             flash("A confirmation email has been sent to your email")
             return redirect('/login')
         
-@app.route('/confirm/<token>', methods=['GET'])
+@app.route('/confirm/<token>/', methods=['GET'])
 def confirm_email(token):
     print(token)
     try:
@@ -236,42 +239,42 @@ def confirm_email(token):
         print(username)
     except:
         flash('The confirmation link is invalid. Check your email')
-        return redirect('/', code=302)
+        return redirect('/')
     if db.check_not_auth_user_is_exist(username) == []:
         flash('This is link for not registered account')
-        return redirect('/registration', code=302)
+        return redirect('/registration')
     token = jwt.encode(payload={"name": username, "role": get_role(username), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
     if db.check_auth_user(username):
         print(db.check_auth_user(username))
         flash('Account already confirmed . Please login')
-        return redirect('/login', code=302)
+        return redirect('/login')
     else:
         db.auth_user(username)
         flash('You have confirmed your account. Thanks!')
-        resp = make_response(redirect("/", code=302))
+        resp = make_response(redirect("/"))
         resp.set_cookie("jwt", token)
         return resp
 
-@app.route('/logout', methods=['GET'])
+@app.route('/logout/', methods=['GET'])
 def logout():
-    resp = make_response(redirect("/login", code=302))
+    resp = make_response(redirect("/login"))
     resp.set_cookie("jwt", "", expires=0)
     return resp
 
-@app.route('/classes/add', methods=['GET', 'POST'])
+@app.route('/classes/add/', methods=['GET', 'POST'])
 def class_add():
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     if role == "student":
         flash("Asset denied")
         return redirect('/', code=403)
@@ -282,7 +285,7 @@ def class_add():
         name = form['name']
         if name == "":
             flash("Class name is required")
-            return redirect('/class/add', code=302)
+            return redirect('/class/add')
         password = form['password']
         if password == "":
             for i in range(random.randint(4, 10)):
@@ -300,15 +303,15 @@ def class_view(id):
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     if not db.is_teacher_in_class(id, email):
         flash("Asset denied")
         return redirect('/', code=403)
@@ -318,9 +321,9 @@ def class_view(id):
     password = password[2]
     names, ans = db.get_marks_by_class(id)
     print(names, ans)
-    return render_template('Class.html', admin=role=='admin', name=name, ans=ans, names=names, id=id, password=password)
+    return render_template('Class.html', admin=role=='admin', name=name, ans=ans, names=names, id=id, password=password, homework=db.get_homework_by_class_id(id))
 
-@app.route('/classes/<id>/add_student', methods=['GET', 'POST'])
+@app.route('/classes/<id>/add_student/', methods=['GET', 'POST'])
 def add_student(id):
     if not db.is_class_exists(id):
         flash('Class not found')
@@ -328,15 +331,15 @@ def add_student(id):
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     if role != 'student':
         flash("Asset denied")
         return redirect('/', code=403)
@@ -359,7 +362,7 @@ def add_student(id):
             flash("Invalid password")
             return redirect('/classes/'+str(id)+'/add_student', code=403)
 
-@app.route('/classes/<id>/add_teacher', methods=['GET', 'POST'])  
+@app.route('/classes/<id>/add_teacher/', methods=['GET', 'POST'])  
 def add_teacher(id):
     if not db.is_class_exists(id):
         flash('Class not found')
@@ -367,15 +370,15 @@ def add_teacher(id):
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     if role == 'student':
         flash("Asset denied")
         return redirect('/', code=403)
@@ -388,16 +391,16 @@ def add_teacher(id):
         form = request.form
         email = form['email']
         if db.is_user_exists(email):
-            if db.add_user(email):
+            if db.add_teacher(id, email):
                 flash('Teacher added successfully')
                 return redirect("/classes/"+str(id)+'/', code=200)
             else:
                 return "Error"
         else:
             flash('No such user')
-            return redirect(f"/classes/{id}/add_teacher", code=302)
+            return redirect(f"/classes/{id}/add_teacher")
 
-@app.route('/classes/<id>/edit_homework', methods=['GET', 'POST'])
+@app.route('/classes/<id>/edit_homework/', methods=['GET', 'POST'])
 def edit_homework(id):
     if not db.is_class_exists(id):
         flash('Class not found')
@@ -405,15 +408,15 @@ def edit_homework(id):
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     if role != 'student' and db.is_teacher_in_class(id, email):
         if request.method == 'GET':
             return render_template('edit_homework.html', id=id)
@@ -437,15 +440,15 @@ def edit_marks(id):
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302)
+        return redirect("/login")
     if role == 'student':
         flash("Asset denied")
         return redirect('/', code=403)
@@ -474,16 +477,16 @@ def edit_marks(id):
         return redirect(f'/classes/{id}/', code=200)
             
 
-@app.route('/change_password', methods=['GET', 'POST'])
+@app.route('/change_password/', methods=['GET', 'POST'])
 def change_password():
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
-        return redirect("/login", code=302)
+        return redirect("/login")
     email = confirm_token(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login", code=302) 
+        return redirect("/login") 
     if request.method == 'GET':
         return render_template('change_pass.html')
     else:
@@ -539,5 +542,5 @@ def change_password():
 
 if __name__== '__main__':
     print('start')
-    app.run("0.0.0.0", port=11703, debug=True)
+    app.run("0.0.0.0", port=11702, debug=True)
 

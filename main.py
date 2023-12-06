@@ -13,8 +13,6 @@ app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
-
 def parse_data(field):
     file = open("config.json")
     data = json.load(file)[field]
@@ -70,10 +68,10 @@ def check_jwt(token, username):
 
 def get_role(username):
     data, data1 = parse.parse_csv()
-    if username in data:
-        return "student"
-    elif username in data1:
+    if username in data1:
         return "teacher"
+    elif username in data:
+        return "student"
     elif username == "schoolsilaeder@gmail.com":
         return "admin"
 
@@ -320,8 +318,10 @@ def class_view(id):
     name = password[1]
     password = password[2]
     names, ans = db.get_marks_by_class(id)
+    date = db.get_homework_data_by_class_id(id)
+    teachers = ', '.join(db.get_teachers_by_class_id(id)[0][0])
     print(names, ans)
-    return render_template('Class.html', admin=role=='admin', name=name, ans=ans, names=names, id=id, password=password, homework=db.get_homework_by_class_id(id))
+    return render_template('Class.html', admin=role=='admin', name=name, ans=ans, names=names, id=id, password=password, homework=db.get_homework_by_class_id(id), homework_date=date, teachers=teachers)
 
 @app.route('/classes/<id>/add_student/', methods=['GET', 'POST'])
 def add_student(id):
@@ -524,7 +524,7 @@ def change_password():
             if not hasLowerCase:
                 flash("Password must contain at least one lowercase letter")
                 return redirect('/change_password')
-            wf
+            
             if not hasSpecialCharecters:
                 flash("Password must contain at least one special character")
                 return redirect('/change_password')
@@ -539,6 +539,27 @@ def change_password():
         else:
             flash("Invalid old password")
         
+@app.route("/change_name", methods=['GET', 'POST'])
+def change_name():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login")
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token, please relogin')
+        return redirect("/login") 
+    if request.method == 'GET':
+        return render_template('change_name.html')
+    else:
+        form = request.form
+        if (form['name'] == ''):
+            flash("All felds are reqired")
+            return redirect("/change_name", code=302)
+        if not db.update_name(email, form['name']):
+            return 'ERROR'
+        flash('Name update sucssesfuly')
+        return redirect('/')
 
 if __name__== '__main__':
     print('start')

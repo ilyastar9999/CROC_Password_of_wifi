@@ -93,7 +93,7 @@ a{
   <form method="POST">
     <h1 class="mb-3">Здравствуйте, {{name}}!</h1>
     {% if ans|length == 0 %}
-      <h1 class="mb-3">У вас нет класов</h1>
+      <h1 class="mb-3">У вас нет классов</h1>
     {% else %}
       {% for i in ans %}
       <a class="btn btn-primary w-100 py-2" type="submit" style ='margin-top: 10px; display:inline-block;' href="/classes/{{i[1]}}">{{i[0]}}</a>

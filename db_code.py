@@ -1,6 +1,11 @@
 import psycopg2
 import json
+import time
+import locale
+from datetime import datetime
 #import sqlite3
+
+locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
 config_file = open("config.json")
 config_data = json.load(config_file)
@@ -42,6 +47,7 @@ def create_user(name, password, email):
         conn.commit()
         return True
     except:
+        conn.rollback()
         return False
 
 def check_auth_user(username):
@@ -54,6 +60,7 @@ def check_auth_user(username):
         else:
             return False
     except:
+        conn.rollback()
         return True
 
 def auth_user(username):
@@ -70,7 +77,7 @@ def check_not_auth_user_is_exist(username):
 def create_all():
     sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value TEXT, email TEXT, class_id TEXT, name INTEGER);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
-"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, teachers TEXT ARRAY, names TEXT ARRAY);"""]
+"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, homework_date TEXT, teachers TEXT ARRAY, names TEXT ARRAY);"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
     cursor.execute(sqlite_select_query[2])
@@ -162,11 +169,13 @@ def get_class_by_id(id):
 
 def create_class(class_name, password, teacher_email):
     try:
-        sqlite3_select_query = """INSERT INTO classes (name, password, teachers) VALUES (%s, %s, %s);"""
-        cursor.execute(sqlite3_select_query, (class_name, password, [teacher_email], ))
+        now = datetime.now()
+        sqlite3_select_query = """INSERT INTO classes (name, password, teachers, homework_date) VALUES (%s, %s, %s, %s);"""
+        cursor.execute(sqlite3_select_query, (class_name, password, [teacher_email], f'{str(now.day)}.{str(now.month)}.{str(now.year)}', ))
         conn.commit()
         return True
     except:
+        conn.rollback()
         return False
     
 def is_class_exists(id):
@@ -194,6 +203,7 @@ def add_class_member(id, email):
         conn.commit()
         return True
     except:
+        conn.rollback()
         return False
 
 def get_user_by_email(email):
@@ -203,12 +213,15 @@ def get_user_by_email(email):
     return cursor.fetchall()
 
 def update_homework(id, text):
-        sqlite3_select_query = """UPDATE classes SET homework = %s WHERE id = %s;"""
-        cursor.execute(sqlite3_select_query, (text, id, ))
+    try:
+        now = datetime.now()
+        sqlite3_select_query = """UPDATE classes SET homework = %s, homework_date = %s WHERE id = %s;"""
+        cursor.execute(sqlite3_select_query, (text, f'{str(now.day)}.{str(now.month)}.{str(now.year)}', id, ))
         conn.commit()
         return True
-    #except:
-     #   return False
+    except:
+        conn.rollback()
+        return False
 
 def is_user_exists(email):
     sqlite3_select_query = """SELECT * FROM users WHERE email = %s;"""
@@ -226,6 +239,7 @@ def add_teacher(id, email):
         conn.commit()
         return True
     except:
+        conn.rollback()
         return False
 
 def get_marks_by_class(id_class):
@@ -346,5 +360,25 @@ def get_name_of_class(email):
         return ans[0][0]
     return False
 
+def get_homework_data_by_class_id(id):
+    sqlite3_select_query = """SELECT homework_date FROM classes WHERE id = %s;"""
+    cursor.execute(sqlite3_select_query, (id, ))
+    conn.commit()
+    return cursor.fetchall()[0][0]
+
+def get_teachers_by_class_id(id):
+    sqlite3_select_query = """SELECT teachers FROM classes WHERE id = %s;"""
+    cursor.execute(sqlite3_select_query, (id, ))
+    conn.commit()
+    return cursor.fetchall()
+
+def update_name(email, password):
+    try:
+        sqlite3_query = """UPDATE users SET name=%s WHERE email=%s;"""
+        cursor.execute(sqlite3_query, (password, email, ))
+        conn.commit()
+        return True
+    except:
+        return False
 #DEBUG
 print(get_all_users())

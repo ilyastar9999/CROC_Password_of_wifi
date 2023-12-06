@@ -45,6 +45,21 @@
   display: block;
 }
 
+.button27 {
+  position: relative;
+  display: inline-block;
+  width: 2em;
+  height: 2em;
+  line-height: 2em;
+  vertical-align: middle;
+  text-align: center;
+  text-decoration: none;
+  color: #000;
+  outline: none;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px #ddd inset, 0 1px 1px #fff;
+}
+
 .dropdown-content a:hover {background-color: #ddd;}
 
 .dropdown:hover .dropdown-content {display: block;}
@@ -81,11 +96,11 @@
         <h4> нет оценок </h1><!-- ПРАВИТЬ -->
       {% else %}
         {% for i in ans %}
-          <div class = "border border-primary rounded row">
+          <div class = "button27">
             <h4> {{i[0]}} </h1>
             <!--<p> {{i[1]}} </p>-->
             {% for j in i[1:] %}
-                <div class = "border border-primary rounded col-sm" id="mark"> {{j}} </div>
+                <div class = "button27" id="mark"> {{j}} </div>
             {% endfor %}
           </div>
         {% endfor %}

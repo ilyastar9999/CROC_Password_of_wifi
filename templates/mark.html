@@ -68,6 +68,13 @@
   </style>
 </head>
 <body>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+          <script>alert("{{message}}");</script>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
   <header>
     <div class="dropdown">
         <button class="dropbtn" >👤</button>
@@ -99,8 +106,10 @@
           <div class = "button27">
             <h4> {{i[0]}} </h1>
             <!--<p> {{i[1]}} </p>-->
-            {% for j in i[1:] %}
+            {% for j in i[1] %}
+                {% if j != '' %}
                 <div class = "button27" id="mark"> {{j}} </div>
+                {% endif %}
             {% endfor %}
           </div>
         {% endfor %}

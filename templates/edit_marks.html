@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark"><head>
+
+  <head>
+      
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница учителя(просмотр оценок)</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+      .mb-3{
+        font-family: 'Bradley Hand';
+      }
+      .dropbtn {
+  /*background-color: #04AA6D;*/
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border-radius: 50px;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.stas{
+    border: 2px solid blue;
+    padding-top: 20px;
+    padding-left: 20px;
+    border-radius: 30px;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #FFA500;}     
+    </style>
+<main class="form-signin w-100 m-auto">
+    <header>
+      <div class="dropdown">
+          <button class="dropbtn" >👤</button>
+          <div class="dropdown-content">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+      </div>
+    </header>
+<body>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+          <script>alert("{{message}}");</script>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
+<div class="container mt-3">
+  <h2 class="mb-3" style="margin-top: 30px;">Редактирование оценок</h2>
+  <p>Сначало создайте все столбцы, потом уже выстовляйте(иначе всё сотрётся)</p>
+  
+  <form method="POST" action="/classes/{{id}}/edit_marks">
+  <table class="table table-striped">
+    <thead>
+      <tr id="th">
+        {% for j in jss %}
+          {% if j == 0 %}
+          <td>{{names[i]}}</td>
+          {% else %}
+          <td><input name="names[]" value="{{names[j]}}"></td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in iss %}
+      <tr class="tb">
+        {% for j in jss %}
+          {% if j == 0 %}
+          <td>{{ans[i][j]}}</td>
+          {% else %}
+          <td><input name="{{j}}-{{i+1}}" value="{{ans[i][j]}}"></td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a class="btn btn-primary" id='addCol'>Add colum</a>
+  <div class = "row">
+    <div class = "col-sm">
+        <a href="/classes/{{id}}/" class="btn">Отмена</input>
+    </div>
+    <div class = "col-sm">
+        <input type = "submit" class="btn btn-primary" value="Сохранить"></input>
+    </div>
+</div>
+</form>
+</div>
+<script
+  src="https://code.jquery.com/jquery-3.6.3.js"
+  integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM="
+  crossorigin="anonymous">
+</script>
+<script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script>
+  var colums = {{mxj}};  
+  var new_names = {{mxi}};
+  $('#addCol').click (function () {
+    var head = document.getElementById('th')
+    th.innerHTML += '<td><input name="names[]"></td>';
+    var rows = document.getElementsByClassName("tb");
+    for (var i = 0; i < rows.length; i++) {
+      var x = rows[i];
+      x.innerHTML += '<td><input name="'+ String(colums) + '-' + String(i+1) + '"></td>';
+    }
+    colums++;
+    new_names++;
+  });
+
+  $(document).ready(function() {
+  $('form').each(function() {
+    $(this).keydown(function(event) {
+      if (event.keyCode == 13) {
+        event.preventDefault();
+        return false;
+      }
+    });
+  });
+});
+</script>
+</body>
+</main>
+</html>

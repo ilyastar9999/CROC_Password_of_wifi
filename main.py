@@ -144,14 +144,18 @@ def login():
     else:
         login = request.form["login"]
         password = request.form["password"]
-
+        if not db.is_user_exists(login):
+            flash('Account not found')
         if db.get_is_user_logged_in(login, password):
             token = jwt.encode(payload={"name": login, "role": get_role(login), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
             resp = make_response(redirect("/"))
             resp.set_cookie("jwt", token)
             return resp
         else:
-            flash('Wrong email or password or account not found/confirmed')
+            if db.check_auth_user(login):
+                flash('Wrong password')
+            else:
+                flash('Account not confirmed')
             return redirect("/login")
     
 @app.route('/register/', methods=['GET', 'POST'])

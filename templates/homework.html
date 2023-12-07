@@ -57,6 +57,13 @@ a{
   </style>
 </head>
 <body>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+          <script>alert("{{message}}");</script>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
   <header>
     <div class="dropdown">
         <button class="dropbtn" >👤</button>
@@ -85,10 +92,12 @@ a{
         <h4> Нет дз </h1><!-- ПРАВИТЬ -->
       {% else %}
         {% for i in ans %}
+          {% if i[1] != None %}
           <div class = "border border-primary rounded" id = "h">
             <h4> {{i[0]}} </h1>
             <p> {{i[1]}} </p>
           </div>
+          {% endif %}
         {% endfor %}
       {% endif %}
     </div>

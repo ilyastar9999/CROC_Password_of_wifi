@@ -28,12 +28,16 @@
 
     <form method="POST">
         <div>
-            <h3> Привязка плючника </h3>
-            <p> Введите название класса: </p>
-            <input class = "form-control" name = "group", placeholder="название класса">
-            <p> Введите ссылку на плюсник (гугл таблица) </p>
-            <input class = "form-control" name = "link", placeholder="ссылка">
-            <button type="submit"> Добавить </button>
+
+            <select class="form-select" aria-label="Default select example">
+                <option selected>Open this select menu</option>
+                {% for i in members %}
+                    <option value= {{i}} > {{i}} : {{members[i]}} </option>
+                {% end for %}
+              </select>
+
+            <button type="submit"> Принять </button>
+            <button type="submit"> Отклонить </button>
         </div>
     </form>
     

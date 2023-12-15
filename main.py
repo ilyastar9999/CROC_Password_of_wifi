@@ -8,6 +8,7 @@ import os
 import parse
 import db_code as db
 import random
+import parse_google 
 
 app = Flask(__name__)
 
@@ -113,9 +114,9 @@ def homeworks():
         return redirect("/")
     
 
-@app.route('/', methods=['GET'])
-def main():
-    print('eeee')
+@app.route('/classes/', methods=['GET'])
+def classes():
+    print('eeee D x`v cvscjk ;bpyb?')
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
@@ -135,6 +136,16 @@ def main():
         name = db.get_name(email)
         return render_template("Main Teacher.html", admin=role=='admin', ans=classes, name=name)
         
+@app.route('/', methods=['GET'])
+def main():
+    token = request.cookies.get("jwt")
+    admin = False
+    if token:
+        email = confirm_token(token)
+        if email:
+            if get_role(email):
+                admin = True
+    return render_template('what_it_is.html', logined_in=request.cookies.get("jwt"), admin=admin)
 
 @app.route("/login/", methods=["GET", "POST"])
 def login():
@@ -157,7 +168,7 @@ def login():
             else:
                 flash('Account not confirmed')
             return redirect("/login")
-    
+
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
@@ -259,7 +270,7 @@ def confirm_email(token):
 
 @app.route('/logout/', methods=['GET'])
 def logout():
-    resp = make_response(redirect("/login"))
+    resp = make_response(redirect("/"))
     resp.set_cookie("jwt", "", expires=0)
     return resp
 
@@ -296,6 +307,67 @@ def class_add():
         flash("Class added")
         return redirect('/', code=200)
 
+@app.route('/classes/add_google_class/', methods=['GET', 'POST'])
+def class_google_add():
+    token = request.cookies.get("jwt")
+    if not token:
+        flash('You are not logged in')
+        return redirect("/login")
+    email = confirm_token(token)
+    if not email:
+        flash('Invalid token, please relogin')
+        return redirect("/login")
+    role = get_role(email)
+    if not role:
+        flash('Invalid token, please relogin')
+        return redirect("/login")
+    if role == "student":
+        flash("Asset denied")
+        return redirect('/', code=403)
+    if request.method == 'GET':
+        return render_template('class_add.html')
+    else:
+        form = request.form
+        name = form['name']
+        sheet = form['sheet']
+        col = form['col']
+        for i in col:
+            if i not in 'QWERTYUIOPASDFGHJKLZXCVBNM:':
+                flash('Student column is not valid')
+                return redirect('/classes/add_google_class/', code=302)
+        link = form['link']
+        if link == '':
+            flash("Link is required")
+            return redirect('/class/add_google_class')
+        if link.find('/d/') == -1:
+            flash("Link is invalid")
+            return redirect('/class/add_google_class')
+        link = link[link.find('/d/'):]
+        if link.find('/') == -1:
+            flash("Link is invalid")
+            return redirect('/class/add_google_class')
+        link = link[:link.find('/')]
+        if sheet == '':
+            flash("List name is required")
+            return redirect('/class/add_google_class')
+        if name == "":
+            flash("Class name is required")
+            return redirect('/class/add_google_class')
+        members = parse_google.get_data_from_google_sheet(sheet, col, link)
+        if members == False:
+            flash("Invalid table data")
+            return redirect('/class/add_google_class')
+        if members == []:
+            flash("Nothing in requested google table data")
+            return redirect('/class/add_google_class')
+        password = form['password']
+        if password == "":
+            for i in range(random.randint(4, 10)):
+                password += random.choice('qwertyuiopasdfghjklzxcvbnmQAZWSXEDCRFVTGBYHNUJMIK,OL.P_()')
+        
+        db.create_google_class(name, password, email, members)
+        flash("Class added")
+        return redirect('/', code=200)
 
 @app.route('/classes/<id>/', methods=['GET'])
 def class_view(id):
@@ -317,6 +389,7 @@ def class_view(id):
     if not db.is_teacher_in_class(id, email):
         flash("Asset denied")
         return redirect('/', code=403)
+        
     password = list(db.get_class_by_id(id)[0])
     #print(password)
     name = password[1]
@@ -325,7 +398,7 @@ def class_view(id):
     date = db.get_homework_data_by_class_id(id)
     teachers = ', '.join(db.get_teachers_by_class_id(id)[0][0])
     print(names, ans)
-    return render_template('Class.html', admin=role=='admin', name=name, ans=ans, names=names, id=id, password=password, homework=db.get_homework_by_class_id(id), homework_date=date, teachers=teachers)
+    return render_template('Class.html', admin=role=='admin', name=name, ans=ans, names=names, id=id, password=password, homework=db.get_homework_by_class_id(id), homework_date=date, teachers=teachers, type=db.get_class_type(id))
 
 @app.route('/classes/<id>/add_student/', methods=['GET', 'POST'])
 def add_student(id):
@@ -354,14 +427,19 @@ def add_student(id):
         flash("No class exists")
         return redirect('/', code=404)
     if request.method == 'GET':
+        if db.get_class_type(id) == 'google':
+            return render_template('add_student.html', members=db.get_class_members(id))
         return render_template('add_student.html')
     else:
         form = request.form
         password = form['password']
         if db.check_class_password(id, password):
-            if db.add_class_member(id, email):
-                flash('You sucssesfuly added')
-                return redirect('/', code=200)
+            if db.get_class_type(id) == 'google':
+                db.add_student_to_google(id, email)
+            else:
+                if db.add_class_member(id, email):
+                    flash('You sucssesfuly added')
+                    return redirect('/', code=200)
         else:
             flash("Invalid password")
             return redirect('/classes/'+str(id)+'/add_student', code=403)
@@ -384,7 +462,7 @@ def add_teacher(id):
         flash('Invalid token, please relogin')
         return redirect("/login")
     if role == 'student':
-        flash("Asset denied")
+        flash("Asset denied") # Может всё же access?
         return redirect('/', code=403)
     if not db.is_teacher_in_class(id, email):
         flash("Asset denied")
@@ -441,6 +519,9 @@ def edit_marks(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/', code=404)
+    if db.get_class_type(id) == 'google':
+        flash('Unsupport for class from google')
+        return redirect('/class/'+str(id)+'/', code=404)
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
@@ -543,7 +624,7 @@ def change_password():
         else:
             flash("Invalid old password")
         
-@app.route("/change_name", methods=['GET', 'POST'])
+@app.route("/change_name/", methods=['GET', 'POST'])
 def change_name():
     token = request.cookies.get("jwt")
     if not token:
@@ -564,6 +645,10 @@ def change_name():
             return 'ERROR'
         flash('Name update sucssesfuly')
         return redirect('/')
+
+@app.route('/s3cr37_P@63_F0r_C7Fs_@nd_160r/', methods=['GET'])
+def test():
+    return redirect('https://www.youtube.com/watch?v=s8hlfPqdRFw')
 
 if __name__== '__main__':
     print('start')

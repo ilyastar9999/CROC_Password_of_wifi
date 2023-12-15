@@ -37,15 +37,63 @@ h1{
 
     
 <main class="container">
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+          <script>alert("{{message}}");</script>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
+  <header>
+    {% if not logined_in %}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <h1>Silaeder Dairy</h1>
+          <div>
+            <a class="btn" href='/login'>Войти</a>
+            <a class="btn" href='/register'>Зарегестрироваться</a>
+          </div>
+        </div>
+      </nav>
+      {% else %}
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">Silaeder Dairy</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Профиль
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <li><a class="dropdown-item" href="/classes">К журналу</a></li>
+                  <li><a class="dropdown-item" href="/change_name">Изменение имяни</a></li>
+                  <li><a class="dropdown-item" href="/change_password">Изменение пароля</a></li>
+                  {% if admin %}
+                  <li><a class="dropdown-item" href="/admin">Панель админа</a></li>
+                  {% endif %}
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="/logout" style="color: red;">Выйти из аккаунт</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      {% endif %}
+  </header>
   <div class="bg-body-tertiary p-5 rounded mt-3">
     <h1>Что это такое и зачем?</h1>
     <p class="lead" >Созданный сайт предназначен для школы и предоставляет учителям возможность выставлять оценки и задания, а ученикам — просматривать их. Это позволяет учителям эффективно управлять учебным процессом, а ученикам — быть в курсе своих оценок и заданий.</p>
     <p class="lead">Учителя имеют возможность создавать классы по определённому классу и предмету, и с помощью сгенерированных ссылок и паролей добавлять туда учеников.</p>
     <p class="lead" style="margin-bottom: 50px;">Ученики, в свою очередь,  видят проставленные оценки и домашние задания.</p>
-    <a class="button7" href="http://example.com" target="_blank">Понятно</a>
+    <a class="button7" href="/classes/">К журналу</a>
   </div>
 </main>
-
+<script src="{{url_for('static', filename='bootstrap.bundle.min.js')}}"></script>
     
 
 </body></html>

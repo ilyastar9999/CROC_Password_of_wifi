@@ -7,6 +7,7 @@ from datetime import datetime
 
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
+# TODO: just use env
 config_file = open("config.json")
 config_data = json.load(config_file)
 host = config_data["db_host"]
@@ -22,6 +23,8 @@ conn = psycopg2.connect(
     user=user, 
     password=password
 )
+
+# TODO: use logging library
 print('sucsessful connect to db')
 #conn = sqlite3.connect('db.sql')
 
@@ -77,7 +80,8 @@ def check_not_auth_user_is_exist(username):
 def create_all():
     sqlite_select_query = ["""CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value TEXT, email TEXT, class_id TEXT, name INTEGER);""",  
 """CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);""",
-"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, homework_date TEXT, teachers TEXT ARRAY, names TEXT ARRAY);"""]
+"""CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, homework_date TEXT, teachers TEXT ARRAY, names TEXT ARRAY, link TEXT);""",
+"""CREATE TABLE IF NOT EXIST requests(id SEREAL PRIMARY KEY, email TEXT, class_id TEXT, name TEXT)"""]
     cursor.execute(sqlite_select_query[0])
     cursor.execute(sqlite_select_query[1])
     cursor.execute(sqlite_select_query[2])
@@ -109,34 +113,37 @@ def get_is_user_logged_in(username, password):
     
 def get_homework(username):
     if username == "schoolsilaeder@gmail.com":
-        sqlite3_select_query = """SELECT name, homework FROM classes;"""
+        sqlite3_select_query = """SELECT name, homework, homework_date FROM classes;"""
         cursor.execute(sqlite3_select_query)
         conn.commit()
         return cursor.fetchall()
-    sqlite3_select_query = """SELECT name, homework FROM classes WHERE %s = ANY(members);"""
+    sqlite3_select_query = """SELECT name, homework, homework_date FROM classes WHERE %s = ANY(members);"""
     cursor.execute(sqlite3_select_query, (username, ))
     conn.commit()
     return cursor.fetchall()
 
 def get_marks(username):
     if username == "schoolsilaeder@gmail.com":
-        sqlite3_select_query = """SELECT class_id, value FROM marks;"""
+        sqlite3_select_query = """SELECT class_id, value, name FROM marks;"""
         cursor.execute(sqlite3_select_query)
         conn.commit()
     else:
-        sqlite3_select_query = """SELECT class_id, value FROM marks WHERE email = %s;"""
+        sqlite3_select_query = """SELECT class_id, value, name FROM marks WHERE email = %s;"""
         cursor.execute(sqlite3_select_query, (username, ))
         conn.commit()
     ans = cursor.fetchall()
     ans1 = {}
     for i in ans:
         name = get_name_of_class(i[0])
+        desc = get_topics_of_marks(i[0])[0][0]
+        print(desc, i)
+        print(desc[i[2]])
         if name == False:
             continue
         try:
-            ans1[name].append(i[1])
+            ans1[name].append([i[1], desc[i[2]]])
         except:
-            ans1[name] = [i[0]]
+            ans1[name] = [[i[1], desc[i[2]]]]
     print(ans1)
     return ans1
 
@@ -293,10 +300,10 @@ def change_password(email, password):
     return
 
 def get_topics_of_marks(id):
-    query = """SELECT name FROM marks WHERE class_id=%s;"""
+    query = """SELECT names FROM classes WHERE id=%s;"""
     cursor.execute(query, (id, ))
     conn.commit()
-    return list(set(cursor.fetchall()))
+    return cursor.fetchall()
 
 def is_student_in_class(id, email):
     if email == 'schoolsilaeder@gmail.com':
@@ -379,6 +386,62 @@ def update_name(email, password):
         conn.commit()
         return True
     except:
+        conn.rollback()
         return False
+
+def get_class_type(id):
+    sqlite3_query = """SELECT link FROM classes WHERE id = %s;"""    
+    cursor.execute(sqlite3_query, (id, ))
+    conn.commit()
+    ans = cursor.fetchall()
+    if ans[0][0] == '':
+        return 'common'
+    else:
+        return 'google'
+
+def add_class_members(id, members):
+    for i in members:
+        if not add_class_member(id, i):
+            return False
+    return True
+
+def create_google_class(class_name, password, teacher_email, members):
+    try:
+        now = datetime.now()
+        sqlite3_select_query = """INSERT INTO classes (name, password, teachers, homework_date, type) VALUES (%s, %s, %s, %s, %s) RETURNING id;"""
+        cursor.execute(sqlite3_select_query, (class_name, password, [teacher_email], f'{str(now.day)}.{str(now.month)}.{str(now.year)}', 'google', ))
+        conn.commit()
+        id = cursor.fetchall()
+        add_class_members(id, members)
+        return True
+    except:
+        conn.rollback()
+        return False
+    
+def add_student_to_google(id, email):
+    sqlite3_query = 'INSERT INTO requests(class_id, email, name) VALUES (%s, %s, %s);'
+    cursor.execute(sqlite3_query, (id, email, get_name(email), ))
+    conn.commit()
+    return True
+
+def is_request_send(id, email):
+    sqlite3_query = 'SELECT id INTO WHERE class_id = %s, email = %s;'
+    cursor.execute(sqlite3_query, (id, email, ))
+    conn.commit()
+    return cursor.fetchall() != []
+
+def decline_request_to_class(id, email):
+    sqlite3_query = 'DELETE FROM requests(class_id, email, name) VALUES (%s, %s, %s);'
+    cursor.execute(sqlite3_query, (id, email, ))
+    conn.commit()
+    return True
+
+def aprove_request_to_class(id, email, member):
+    decline_request_to_class(id, email)
+    sqlite3_query = 'UPDATE requests SET members = array_replace(col1, %s, %s) WHERE id = %s;'
+    cursor.execute(sqlite3_query, (member, email, id, ))
+    conn.commit()
+    return True
+
 #DEBUG
-print(get_all_users())
+#print(get_all_users())

@@ -89,13 +89,13 @@ a{
     <br>
     <div class = "homework">
       {% if ans|length == 0 %}
-        <h4> Нет дз </h1><!-- ПРАВИТЬ -->
+        <h4> Нет дз </h1>
       {% else %}
         {% for i in ans %}
           {% if i[1] != None %}
           <div class = "border border-primary rounded" id = "h">
             <h4> {{i[0]}} </h1>
-            <p> {{i[1]}} </p>
+            <p> {{i[1]}} от {{i[2]}}</p>
           </div>
           {% endif %}
         {% endfor %}

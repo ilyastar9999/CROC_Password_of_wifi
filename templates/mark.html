@@ -12,10 +12,6 @@
         margin-right: auto;
         text-align: center;
       }
-
-      #mark {
-        width: 1.5rem;
-      }
       .dropbtn {
   /*background-color: #04AA6D;*/
   color: white;
@@ -46,16 +42,15 @@
 }
 
 .button27 {
-  position: relative;
   display: inline-block;
-  width: 2em;
-  height: 2em;
-  line-height: 2em;
+  width: 2.5rem;
+  height: 2.5rem;
+  line-height: 2.30rem;
   vertical-align: middle;
-  text-align: center;
+  
+  text-align: left;
   text-decoration: none;
   color: #000;
-  outline: none;
   border-radius: 5px;
   box-shadow: 0 0 0 1px #ddd inset, 0 1px 1px #fff;
 }
@@ -102,15 +97,18 @@
       {% if ans|length == 0 %}
         <h4> нет оценок </h1><!-- ПРАВИТЬ -->
       {% else %}
-        {% for i in ans %}
-          <div class = "button27">
+      <p>Наведите на оценку, чтобы посмотреть за что она</p>
+      {% for i in ans %}
+          <div class = "border border-primary rounded row">
             <h4> {{i[0]}} </h1>
             <!--<p> {{i[1]}} </p>-->
             {% for j in i[1] %}
-                {% if j != '' %}
-                <div class = "button27" id="mark"> {{j}} </div>
+                {% if j[0] != '' %}
+                <div class = "button27" id="mark"><abbr title="{{j[1]}}">{{j[0]}}</abbr></div>
                 {% endif %}
             {% endfor %}
+            <br> 
+            <br>
           </div>
         {% endfor %}
       {% endif %}

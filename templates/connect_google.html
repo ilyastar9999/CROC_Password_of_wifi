@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark"><head>
+
+    <style>
+        a, div{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+      }
+    </style>
+  <head>
+      
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Страница привязки плюсника</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    
+<main class="form-signin w-100 m-auto">
+  {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <script>alert("{{message}}");</script>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+    <form method="POST">
+        <div>
+
+            <select class="form-select" aria-label="Default select example">
+                <option selected>Open this select menu</option>
+                {% for i in members %}
+                    <option value= {{i}} > {{i}} : {{members[i]}} </option>
+                {% end for %}
+              </select>
+
+            <button type="submit"> Принять </button>
+            <button type="submit"> Отклонить </button>
+        </div>
+    </form>
+    
+<script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    
+
+</body></html>

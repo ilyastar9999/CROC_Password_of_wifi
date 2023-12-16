@@ -29,14 +29,14 @@
 {% endwith %}
   <form method="POST">
     <div class="container">
-      <h1> Добавление ученика </h1>
+      <h1> Добавление столбца </h1>
       <br>
       <br>
       <br>
       <div class = "homework">
-        <input class="form-control" placeholder="Пароль для вступления" name="password"></input>
+        <input class="form-control" placeholder="Диапозон столбца(или столбец, например P:P) с оценками и названием в начале" name="col"></input>
         <br>
-        <a href="/homeworks" class="btn">Отмена</a>
+        <a href="/classes/{{id}}/" class="btn">Отмена</a>
         <input type = "submit" class="btn btn-primary" value="Отправить"></input>
       </div>
     </div>

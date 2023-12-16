@@ -77,7 +77,11 @@
   <p class="mb-4">Пароль для вступления в класс: {{password}}</p>
   <div class = "row">
     <div class = "col-sm">
+      {% if type == 'google' %}
+      <a class = "btn btn-primary" href="/classes/{{id}}/edit_marks"> Добавить столбец </a>
+      {% else %}
       <a class = "btn btn-primary" href="/classes/{{id}}/edit_marks"> Редактировать оценки </a>
+      {% endif %}
     </div>
 
     <div class = "col-sm">
@@ -87,6 +91,12 @@
     <div class = "col-sm">
       <a class = "btn btn-primary" href="/classes/{{id}}/add_teacher"> Добавить учителя </a>
     </div>
+
+    {% if type == 'google' %}
+    <div class = "col-sm">
+      <a class = "btn btn-primary" href="/classes/{{id}}/requests"> Запросы на добавления </a>
+    </div>
+    {% endif %}
   </div>
   <br>
 
@@ -114,8 +124,15 @@
         {% endfor %}
       </tr>
       {% endfor %}
+      <tr>
+        <td></td>
+        {% for i in rangee %}
+        <td><a href="/classes/{{id}}/delete_col/{{i}}" method="POST" class="btn">Удалить</a></td>
+        {% endfor %}
+      </tr>
     </tbody>
   </table>
+  
 </div>
 <script src="{{url_for('static', filename= 'bootstrap.bundle.min.js')}}" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>

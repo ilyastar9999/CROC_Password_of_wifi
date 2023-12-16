@@ -24,7 +24,7 @@
             {% endif %}
         {% endwith %}
     <div class="container">
-      <form action = "/classes/add/" method="POST">
+      <form method="POST">
         <h1> Добавление класса</h1>
         <br>
         <br>
@@ -33,10 +33,18 @@
         <br>
         <input type="password" name = 'password' class="form-control" placeholder='Пароль для вступления(оставить пустым для случайной генерации)'></input>
         <br>
+        {% if type == 'google' %}
+        <input type="text" name = 'link' class="form-control" placeholder='Ссылка на таблицу'></input>
+        <br>
+        <input type="text" name = 'sheet' class="form-control" placeholder='Название листа'></input>
+        <br>
+        <input type="text" name = 'col' class="form-control" placeholder='Промежуток или столбец с учениками'></input>
+        <br>
+        {% endif %}
         <br>
         <div class = "row">
             <div class = "col-sm">
-                <a href="/" class="btn">Отмена</input>
+                <a href="/classes" class="btn">Отмена</input>
             </div>
             <div class = "col-sm">
                 <input type = "submit" class="btn btn-primary" value="Сохранить"></input>

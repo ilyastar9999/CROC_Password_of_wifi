@@ -126,9 +126,11 @@
       {% endfor %}
       <tr>
         <td></td>
+        {% if type == 'google' %}
         {% for i in rangee %}
         <td><a href="/classes/{{id}}/delete_col/{{i}}" method="POST" class="btn">Удалить</a></td>
         {% endfor %}
+        {% endif %}
       </tr>
     </tbody>
   </table>

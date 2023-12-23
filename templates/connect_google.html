@@ -2,7 +2,7 @@
 <html lang="en" data-bs-theme="dark"><head>
 
     <style>
-        a, div{
+        a, div, p{
         display: block;
         margin-left: auto;
         margin-right: auto;
@@ -26,7 +26,7 @@
             {% endif %}
         {% endwith %}
     {% if requests|length == 0 %}
-    <p> ^w     ^`   ^a                   ^b</p>
+    <p> У вас нет заявок на вступление в класс</p>
     {% else %}
     {% for j in requests %}
         <form method="POST">
@@ -36,7 +36,7 @@
                 <input hidden name="name" value="{{j[0]}}">
                 <input hidden name="email" value="{{j[1]}}">
                 <select class="form-select" name="member">
-                    <option selected> ^r ^k     ^`   ^b    ^c ^g                ^o    ^`     ^o      :</option>
+                    <option selected>Выберете ученика, чтобы связать его оценки с оценками запросившего пользователя:</option>
                     {% for i in members %}
                         <option value= {{i}} > {{i}} </option>
                     {% endfor %}

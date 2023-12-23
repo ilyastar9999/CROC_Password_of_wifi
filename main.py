@@ -85,7 +85,7 @@ def marks():
     role = get_role(email)
     if role == "student":
         marks = list(db.get_marks(email).items())
-        print(marks)
+        
         name = db.get_name(email)
         return render_template("mark.html", admin=role=='admin', ans=marks, name = name)
     if role == "teacher" or role == 'admin':
@@ -112,7 +112,7 @@ def homeworks():
 
 @app.route('/classes/', methods=['GET'])
 def classes():
-    print('eeee D x`v cvscjk ;bpyb?')
+    
     token = request.cookies.get("jwt")
     if not token:
         flash('You are not logged in')
@@ -243,10 +243,10 @@ def register():
         
 @app.route('/confirm/<token>/', methods=['GET'])
 def confirm_email(token):
-    print(token)
+    
     try:
         username = confirm_token(token)
-        print(username)
+        
     except:
         flash('The confirmation link is invalid. Check your email')
         return redirect('/login')
@@ -255,7 +255,7 @@ def confirm_email(token):
         return redirect('/registration')
     token = jwt.encode(payload={"name": username, "role": get_role(username), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
     if db.check_auth_user(username):
-        print(db.check_auth_user(username))
+        
         flash('Account already confirmed . Please login')
         return redirect('/login')
     else:
@@ -333,7 +333,7 @@ def class_google_add():
                 flash('Student column is not valid')
                 return redirect('/classes/add_google_class/')
         link = form['link']
-        print(link)
+        
         if link == '':
             flash("Link is required")
             return redirect('/classes/add_google_class')
@@ -345,7 +345,7 @@ def class_google_add():
             flash("Link is invalid")
             return redirect('/classes/add_google_class')
         link = link[:link.find('/')]
-        print(link)
+        
         if sheet == '':
             flash("List name is required")
             return redirect('/classes/add_google_class')
@@ -390,16 +390,13 @@ def class_view(id):
         return redirect('/classes')
         
     password = list(db.get_class_by_id(id)[0])
-    #print(password)
+    #
     name = password[1]
     password = password[2]
     names, ans = db.get_marks_by_class(id)
-    if type(names[0]) == list:
-        for i in range(len(names)):
-            names[i] = names[i][1]
     date = db.get_homework_data_by_class_id(id)
     teachers = ', '.join(db.get_teachers_by_class_id(id)[0][0])
-    #print(names, ans)
+    #
     return render_template('Class.html', admin=role=='admin', name=name, ans=ans, names=names, id=id, password=password, homework=db.get_homework_by_class_id(id), homework_date=date, teachers=teachers, type=db.get_class_type(id), rangee=list(range(len(names)-1)))
 
 @app.route('/classes/<id>/requests/', methods=['GET', 'POST'])
@@ -428,11 +425,11 @@ def google_class_requests(id):
     
     if request.method == "GET":
         a = db.get_class_requests(id)
-        print(a)
-        return render_template('connect_google.html', members=db.get_class_members_for_requests(id), requests=a)
+        
+        return render_template('connect_google.html', members=db.get_class_members_for_requests(id), requests=a, id=id)
     else:
         form = request.form
-        print(form)
+        
         result = form['submit']
         f_email = form['email']
         name = form['name']
@@ -617,11 +614,11 @@ def edit_marks(id):
     if db.get_class_members(id)[0][0] == None:
         flash('Nobody in class. Please add members to your class')
         return redirect(f'/classes/{id}/')
-    print(db.get_class_members(id)[0][0])
+    
     if request.method == 'GET':
         if db.get_class_type(id) == 'common':
             names, ans = db.get_marks_by_class(id)
-            print(names, ans)
+            
             return render_template('edit_marks.html', id=id, names=names, ans=ans, iss=list(range(len(ans))), jss=list(range(len(ans[0]))), mxi=len(ans), mxj=len(ans[0]))
         else:
             return render_template('add_col.html', id=id)
@@ -629,13 +626,13 @@ def edit_marks(id):
         if db.get_class_type(id) == 'common':
             #try:
             form = dict(request.form)
-            print(form)
+            
             mxi = max([int(i.split('-')[0]) for i in form.keys() if i.find('-') != -1])
             mxj = max([int(i.split('-')[1]) for i in form.keys() if i.find('-') != -1])
             a = [[form[str(i)+'-'+str(j)] for j in range(1, mxj+1)] for i in range(1, mxi+1)]
             names = request.form.getlist('names[]')
-            print('kjhgfcdxzxfghjkl;lkijyhgfrdsxcvbhnjytredxcv ')
-            print(names)
+            
+            
             db.update_marks(id, a, names)
         #except:
         #       return 'ERROR: EDIT MARK'
@@ -744,6 +741,7 @@ def test():
     return redirect('https://www.youtube.com/watch?v=s8hlfPqdRFw')
 
 if __name__== '__main__':
-    print('start')
+    #db.delete_all()
+    #db.create_all()
     app.run("0.0.0.0", port=11702, debug=True)
 

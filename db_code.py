@@ -6,7 +6,7 @@ from datetime import datetime
 #import sqlite3
 import parse_google
 
-AUTO_CLEAR_IN_START = False
+AUTO_CLEAR_IN_START = True
 
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
@@ -89,18 +89,18 @@ CREATE TABLE IF NOT EXISTS requests(id SERIAL PRIMARY KEY, email TEXT, class_id 
     conn.commit() 
     create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
     auth_user('schoolsilaeder@gmail.com')
-    print('aaaaaaaadkoauhgvjhuiuohgyvjn jnkiuyftcfgh')
+    
     return
 
 def delete_all():
-    #try:    
-        sqlite_select_query = """DROP TABLE IF EXISTS marks; DROP TABLE IF EXISTS users;DROP TABLE IF EXISTS classes;"""
+    try:    
+        sqlite_select_query = """DROP TABLE marks; DROP TABLE users; DROP TABLE classes;"""
         cursor.execute(sqlite_select_query)
         conn.commit()
-        print('hgfdcfvhjuiytfdc')
-        return True
-    #except:
-     #   conn.rollback()
+        
+        #return True
+    except:
+        conn.rollback()
       #  return False
 
 def get_is_user_logged_in(username, password):
@@ -108,7 +108,7 @@ def get_is_user_logged_in(username, password):
     cursor.execute(sqlite3_select_query, (username, password, ))
     conn.commit()
     ans = cursor.fetchall()
-    print(ans)
+    
     if ans != []:
         if username == 'schoolsilaeder@gmail.com':
             return True
@@ -141,15 +141,15 @@ def get_marks(username):
     for i in ans:
         name = get_name_of_class(i[0])
         desc = get_topics_of_marks(i[0])[0][0]
-        print(desc, i)
-        print(desc[i[2]])
+        
+        
         if name == False:
             continue
         try:
             ans1[name].append([i[1], desc[i[2]]])
         except:
             ans1[name] = [[i[1], desc[i[2]]]]
-    print(ans1)
+    
     sqlite3_select_query = """SELECT name, names, link, sheet, members, id FROM classes WHERE %s = ANY(members) AND link IS NOT NULL;"""
     cursor.execute(sqlite3_select_query, (username, ))
     conn.commit()
@@ -160,13 +160,13 @@ def get_marks(username):
         name = i[1]
         for j in name:
             res.append(parse_google.get_data_from_google_sheet(i[3], j, i[2]))
-        print(res, ind)
+        
         for j in res:
             try:
                 ans1[i[0]].append([j[ind], j[0]])
             except:
                 ans1[i[0]] = [[j[ind], j[0]]]
-    print(ans1)
+    
     return ans1
 
 def get_name(email):
@@ -187,7 +187,7 @@ def get_classes_by_teacher(email):
         cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     a = cursor.fetchall()
-    print(a)
+    
     return a
 
 def get_class_by_id(id):
@@ -227,7 +227,7 @@ def check_class_password(id, password):
 
 def add_class_member(id, email):
     try:
-        print(email)
+        
         sqlite3_select_query  = """UPDATE classes SET members = array_append(members, %s) WHERE id = %s;"""
         cursor.execute(sqlite3_select_query, (email, id, ))
         conn.commit()
@@ -292,28 +292,28 @@ def get_marks_by_class(id_class):
     if aaa == None:
         return [], []
     members = [[get_name(i), i] if '@' in i else i for i in aaa]
-    print(members)
+    
     query = """SELECT names FROM classes WHERE id = %s;"""
     cursor.execute(query, (id_class, ))
     conn.commit()
     fetchal = list(cursor.fetchall()[0])
-    print(fetchal, 'fdsakjhgfcx')
+    
     if get_class_type(id_class) == 'common':
         members = [[get_name(i), i] for i in aaa]
         if fetchal == [None]:
-            print([[members[i][0]] for i in range(len(members))])
+            
             return ['Student'], [[members[i][0]] for i in range(len(members))]
         names = ['Student'] + fetchal[0]
         ans = []
         for i in range(len(members)):
-            print(members[i][0])
+            
             query = """SELECT value, name FROM marks WHERE class_id = %s AND email = %s ORDER BY name;"""
             cursor.execute(query, (id_class, members[i][1], ))
             conn.commit()
             a = [list(i) for i in cursor.fetchall()]
-            print(a, 'iuygfd')
+            
             if a == []:
-                print('fix')
+                
                 for j in range(len(names)-1):
                     query = """INSERT INTO marks (class_id, name, email, value) VALUES (%s, %s, %s, %s);"""
                     cursor.execute(query, (id_class, j, members[i][1], '', ))
@@ -326,12 +326,12 @@ def get_marks_by_class(id_class):
                     b.append(a[k][0])
                 else:
                     b.append('')
-            print(names)
+            
             ans.append([members[i][0]] + b)
         return names, ans
     else:
         members = [get_name(i) if '@' in i else i for i in aaa]
-        print(fetchal, 'dkjhgfc')
+        
         if fetchal == [None]:
             names = ['Student']
             ans = [[i] for i in members]
@@ -340,13 +340,12 @@ def get_marks_by_class(id_class):
         ans = []
         link = get_link_by_class_id(id_class)
         sheet = get_sheet_by_class_id(id_class)
-        print(fetchal, 'kjhgfdxcfghjkiuygf')
+        
         for i in range(len(fetchale)):
             ans.append(parse_google.get_data_from_google_sheet(sheet, fetchale[i], link))
         names = ['Student'] + [i[0] for i in ans]
-        print(ans)
         ans1 = [[members[i] if j == 0 else ans[j-1][i+1] for j in range(len(ans)+1)] for i in range(len(members))]
-        print(ans1, names)
+        print(ans1, ans)
         return names, ans1
 
 def change_password(email, password):
@@ -390,14 +389,14 @@ def is_mark_exsist(id, name, email):
     return cursor.fetchall() 
 
 def update_marks(id, a, names):
-    print(a)
+    
     query = """UPDATE classes SET names = %s WHERE id = %s;"""
     cursor.execute(query, (names, id, ))
     conn.commit()
     members = get_class_members(id)
     for j in range(len(a)):
         for i in range(len(a[j])):
-            print()
+            
             ans = is_mark_exsist(id, j, members[0][0][i])
             if ans == []:
                 query = """INSERT INTO marks (class_id, name, email, value) VALUES (%s, %s, %s, %s);"""
@@ -468,7 +467,7 @@ def create_google_class(class_name, password, teacher_email, members, link, shee
         cursor.execute(sqlite3_select_query, (class_name, password, [teacher_email], f'{str(now.day)}.{str(now.month)}.{str(now.year)}', link, sheet, ))
         conn.commit()
         id = cursor.fetchall()
-        print(members)
+        
         return add_class_members(id[0][0], members)
     #except:
         #conn.rollback()
@@ -531,7 +530,7 @@ def delete_col_in_class(id, ind):
     a = cursor.fetchall()[0][0]
     indd = ind + 1
     a = a[:ind] + a[indd:]
-    print(a)
+    
     sqlite3 = 'UPDATE classes SET names = %s WHERE id = %s;'
     cursor.execute(sqlite3, (a, id, ))
     conn.commit()
@@ -541,12 +540,6 @@ def delete_col_in_class(id, ind):
     return True
 
 #DEBUG
-just_ones = True
-if AUTO_CLEAR_IN_START:
-    if just_ones:
-        delete_all()
-        create_all()
-        just_ones = False
+#create_all()
+print("created all")
 
-print("create all")
-print(get_all_users())

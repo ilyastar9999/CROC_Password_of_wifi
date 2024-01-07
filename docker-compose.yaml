@@ -30,6 +30,18 @@ services:
       - pgdbdata:/var/lib/postgresql/data/
     expose:
       - "3306"
+  
+  pgadmin:
+    image: dpage/pgadmin4:7
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "silaeder_dairy@admin.org"
+      PGADMIN_DEFAULT_PASSWORD: ""
+    ports:
+      - "11704:80"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
 
 volumes:
   pgdbdata: null
+  pgadmin: null

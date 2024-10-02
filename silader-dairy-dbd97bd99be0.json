@@ -1,13 +1,1 @@
-{
-  "type": "service_account",
-  "project_id": "silader-dairy",
-  "private_key_id": "dbd97bd99be062afc1fca5d7568f743f0b7dc577",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCgEvBSFVeIz7uL\nHJ2s/fN7RRaoBPxfSDJkcHaR5TgICMxPCB0RyJsDuf8SgWYgTlYrZ28CYfNWN4Sr\n4Td7J/P3KeZMm8esqMm7DkMoOx1M3VrFrXVIRhj4pPoVie3IeVSc3W3SUZGw7kTj\nyxKvN6BNS0eNdTBzCl+eXHKlDz0sMEIWE7yCFDj8YJKWDcuVpksJcam3xjBNtIUe\nB4+bwY906Za7jijfy0VFLXRr40vOfgxUdxAOdCjugBrsBC2LQTVy4bffY800Cin8\nn9qEANumnvz0cbpZCLJEp6xUabH77BURSO0hiFFXqkeVyadLjNUgMbNVKVuMg+F8\n1ksW7HdXAgMBAAECggEAAZ7veNIagGbwes7skc0O40qmmUdW2HTxfa7d17BYfUxW\nTt6Oj/8iz32mPyVSrjUQDk4ONubDATZ8TQYLLix2l4qAq60c70fUpksIrXM1Yr5D\nDKL3zKZZDmHgd/z2v9CETAPtK403Fz5Yy22wLL7SP4LpoJCoaVT+whDxk2/jqkgQ\nTnvqxWFPzSSuCQJq48pm0R3DJCM16ktafdasV8iMuPn8Vbs/2zPc+DE1UdLsY18b\ni5aBVtaWa7mldgcQMTTKBE6s55RB2XtGUHPI47Se5SkGsF7Z19Swi+VINLUW6FfX\n/yJRIR7X72vjmAj9cEJ7956kXHRrErZIYCd7CehjMQKBgQDWMXwe4lSK9viV2mwa\nK8GjNai6C4cPeFv2JzGxW+EiYp4STAcrvsDnAJwGIhkLFdfxjOsFfzroDHryUITl\nmUX3pmO/3POXea0PviIvjURs+Sz4BW8bGdrQCaBxexZfpVEu8UpQSNoVUCbnhvmJ\n+r3bX3vKtnyWsclyQfN16/bZJQKBgQC/UUtdjEYXPTwr6tR/9EYZblWRRhyyYlvN\n7PkilkEjL360iP6VaayiwpIVAfE2HUyPUt6MR1fwNmbXkPTHw55Whz+ffeahsPri\nzENwNs8uQrF/sDq1W9RkjQhs2XFoAZlhCpQxC+wDmqNje2BJ5FvF3VTa7RJ8qg+A\npxzbHPv7ywKBgAzuvfTLa5lcYhQCNSa7X5ywH7jj+0qm1L6fDTQNPSGrXKn0Jzav\n9Mu90K3aHzL5Jamy/Xm+fdsG7eF1lSCbyYqzZDBwcdDCiv15WG0QlYIS5XEwOs4j\nGIAZJLPVX7t0qtsvvHHuhCRnS4INN0Hqfs4hDMNnk0wx/dzFOKL1FVl1AoGAE2C6\nj3kbyFLNe21HpMYrK3w/cn11fqPzxIHSIiyx4Ex5OvP9RUj00W9/uFz//4ksLgAo\nxnCbeZspA4CNKoanzP/Z89+espXoc3xZAE6s4XSj4dkJuUDZ3G1kgxHrKKuwy2F0\n7RrWBu9syTC/6fwVR49JfvswOixHcbJ7e74Nz80CgYEAtTVDkbEbwvMo98B1ydK4\nkvlkLlKr2oAn56nyS0khiYuXFPPvZzzmK6+8ODOrz/g7dQ4+e78BoSdINNEafAfQ\n3MajunhyjI3fncvcVyg8zfGiDgZkKaaZjBD9nuXxd/waL8pAQ9XucZVGMuCf9t3F\npOCVfPs5oQ7VxM8NruFTewA=\n-----END PRIVATE KEY-----\n",
-  "client_email": "silaeder-dairy@silader-dairy.iam.gserviceaccount.com",
-  "client_id": "106583705305833612882",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/silaeder-dairy%40silader-dairy.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
+

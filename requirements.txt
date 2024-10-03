@@ -35,4 +35,4 @@ typing_extensions==4.8.0
 tzdata==2023.3
 uritemplate==4.1.1
 urllib3==2.1.0
-Werkzeug==3.0.1
+Werkzeug==3.0.3

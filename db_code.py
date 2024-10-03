@@ -56,9 +56,9 @@ def create_user(name, password, email):
         conn.rollback()
         return False
 
-def check_auth_user(username):
+def check_auth_user(email):
     sqlite3_select_query = """SELECT auth FROM users WHERE email = %s;"""
-    cursor.execute(sqlite3_select_query, (username, ))
+    cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     try:
         if cursor.fetchall()[0][0]:
@@ -69,27 +69,29 @@ def check_auth_user(username):
         conn.rollback()
         return True
 
-def auth_user(username):
+def auth_user(email):
     sqlite3_select_query = """Update users SET auth = true WHERE email = %s;"""
-    cursor.execute(sqlite3_select_query, (username, ))
+    cursor.execute(sqlite3_select_query, (email, ))
     return
 
-def check_not_auth_user_is_exist(username):
+def check_not_auth_user_is_exist(email):
     sqlite3_select_query = """SELECT email FROM users WHERE email =%s;"""
-    cursor.execute(sqlite3_select_query, (username, ))
+    cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     return cursor.fetchall()
 
 def create_all():
-    sqlite_select_query = """CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value TEXT, email TEXT, class_id TEXT, name INTEGER);  
-CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);
-CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, homework_date TEXT, teachers TEXT ARRAY, names TEXT ARRAY, link TEXT, sheet TEXT);
-CREATE TABLE IF NOT EXISTS requests(id SERIAL PRIMARY KEY, email TEXT, class_id TEXT, name TEXT);"""
-    cursor.execute(sqlite_select_query)
-    conn.commit() 
-    create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
-    auth_user('schoolsilaeder@gmail.com')
-    
+    try:
+        sqlite_select_query = """CREATE TABLE IF NOT EXISTS marks(id SERIAL PRIMARY KEY, value TEXT, email TEXT, class_id TEXT, name INTEGER);  
+    CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY, name TEXT, password TEXT, auth BOOLEAN, email TEXT UNIQUE);
+    CREATE TABLE IF NOT EXISTS classes(id SERIAL PRIMARY KEY, name TEXT, password TEXT, members TEXT ARRAY, homework TEXT, homework_date TEXT, teachers TEXT ARRAY, names TEXT ARRAY, link TEXT, sheet TEXT);
+    CREATE TABLE IF NOT EXISTS requests(id SERIAL PRIMARY KEY, email TEXT, class_id TEXT, name TEXT);"""
+        cursor.execute(sqlite_select_query)
+        conn.commit() 
+        create_user("Admin Adminovich", parse_data("secret_key"), "schoolsilaeder@gmail.com")
+        auth_user('schoolsilaeder@gmail.com')
+    except:
+        print('failed creating all tables, please try again')
     return
 
 def delete_all():
@@ -103,38 +105,38 @@ def delete_all():
         conn.rollback()
       #  return False
 
-def get_is_user_logged_in(username, password):
+def get_is_user_logged_in(email, password):
     sqlite3_select_query = """SELECT auth FROM users WHERE email=%s AND password=%s;"""
-    cursor.execute(sqlite3_select_query, (username, password, ))
+    cursor.execute(sqlite3_select_query, (email, password, ))
     conn.commit()
     ans = cursor.fetchall()
     
     if ans != []:
-        if username == 'schoolsilaeder@gmail.com':
+        if email == 'schoolsilaeder@gmail.com':
             return True
         return ans[0][0]
     else:
         return False
     
-def get_homework(username):
-    if username == "schoolsilaeder@gmail.com":
+def get_homework(email):
+    if email == "schoolsilaeder@gmail.com":
         sqlite3_select_query = """SELECT name, homework, homework_date FROM classes;"""
         cursor.execute(sqlite3_select_query)
         conn.commit()
         return cursor.fetchall()
     sqlite3_select_query = """SELECT name, homework, homework_date FROM classes WHERE %s = ANY(members);"""
-    cursor.execute(sqlite3_select_query, (username, ))
+    cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     return cursor.fetchall()
 
-def get_marks(username):
-    if username == "schoolsilaeder@gmail.com":
+def get_marks(email):
+    if email == "schoolsilaeder@gmail.com":
         sqlite3_select_query = """SELECT class_id, value, name FROM marks;"""
         cursor.execute(sqlite3_select_query)
         conn.commit()
     else:
         sqlite3_select_query = """SELECT class_id, value, name FROM marks WHERE email = %s;"""
-        cursor.execute(sqlite3_select_query, (username, ))
+        cursor.execute(sqlite3_select_query, (email, ))
         conn.commit()
     ans = cursor.fetchall()
     ans1 = {}
@@ -151,11 +153,11 @@ def get_marks(username):
             ans1[name] = [[i[1], desc[i[2]]]]
     
     sqlite3_select_query = """SELECT name, names, link, sheet, members, id FROM classes WHERE %s = ANY(members) AND link IS NOT NULL;"""
-    cursor.execute(sqlite3_select_query, (username, ))
+    cursor.execute(sqlite3_select_query, (email, ))
     conn.commit()
     ans = cursor.fetchall()
     for i in ans:
-        ind = i[-2].index(username)
+        ind = i[-2].index(email)
         res = []
         name = i[1]
         for j in name:

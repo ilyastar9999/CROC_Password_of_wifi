@@ -95,13 +95,12 @@
     <br>
     <div class = "marks">
       {% if ans|length == 0 %}
-        <h4> нет оценок </h1><!-- ПРАВИТЬ -->
+        <h4> You doesn't have any marks yet... </h1>
       {% else %}
-      <p>Наведите на оценку, чтобы посмотреть за что она</p>
+        <p>Наведите на оценку, чтобы посмотреть за что она</p>
       {% for i in ans %}
           <div class = "border border-primary rounded row">
             <h4> {{i[0]}} </h1>
-            <!--<p> {{i[1]}} </p>-->
             {% for j in i[1] %}
                 {% if j[0] != '' %}
                 <div class = "button27" id="mark"><abbr title="{{j[1]}}">{{j[0]}}</abbr></div>

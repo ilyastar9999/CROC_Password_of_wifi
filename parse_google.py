@@ -11,8 +11,7 @@ service = googleapiclient.discovery.build('sheets', 'v4', http = httpAuth)
 
 def get_data_from_google_sheet(sheet, feild, sheetid):
   try:
-    ranges = [f"{sheet}!{feild}"] 
-              
+    ranges = [f"{sheet}!{feild}"]   
     results = service.spreadsheets().values().batchGet(spreadsheetId = sheetid, 
                                         ranges = ranges, 
                                         valueRenderOption = 'FORMATTED_VALUE',  

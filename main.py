@@ -8,11 +8,12 @@ import os
 import parse
 import db_code as db
 import random
-import parse_google 
+import parse_google
+import datetime
 
 app = Flask(__name__)
 
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/\x00'
 
 def parse_data(field):
     file = open("config.json")
@@ -27,6 +28,8 @@ app.config['MAIL_USERNAME'] = 'schoolsilaeder@gmail.com'
 app.config['MAIL_DEFAULT_SENDER'] = 'schoolsilaeder@gmail.com'  
 app.config['MAIL_PASSWORD'] = parse_data("mail_password")
 app.config['UPLOAD_FOLDER'] = './static/'
+app.config['BASE_URL'] = 'http://server.silaeder.ru:11702/confirm/'
+app.config['SECRET_KEY'] = parse_data("secret_key")
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -44,80 +47,38 @@ def send_email(to, subject, template):
     )
     mail_sender.send(msg)
 
-def generate_confirmation_token(email):
-    return jwt.encode(payload={"name": email, "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
+#generates every token, use only this
+def gen_token(email):
+    return jwt.encode(payload={"email": email, "trash": random.randint(1, 100000), "date": datetime.datetime.now()}, key=app.config['SECRET_KEY'])
 
-
-def confirm_token(token):
-#    try:
-    return jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")["name"]
-
-def check_jwt(token, username):
+#gets email from token and checks time
+def get_token_email(token):
     try:
-        payload = jwt.decode(token, key=parse_data("secret_key"), algorithms="HS256")
+        payload = jwt.decode(token, key=app.config['SECRET_KEY'], algorithms="HS256")
+        if datetime.datetime.now() - payload['date'] > datetime.timedelta(hours=2): # do not use expires in cookies like expires=120, 
+            return None
+        return payload['email']
     except:
-        return False
+        return None
 
-    if payload["name"] == username:
-        return True
-    else:
-        return False
-
-def get_role(username):
-    data, data1 = parse.parse_csv()
-    if username in data1:
+#get user's role from email using .tsv data
+def get_role(email):
+    data1, data2 = parse.parse_csv()
+    if email in data2:
         return "teacher"
-    elif username in data:
+    elif email in data1:
         return "student"
-    elif username == "schoolsilaeder@gmail.com":
+    elif email == "schoolsilaeder@gmail.com":
         return "admin"
+    else:
+        return None
 
-@app.route("/marks/", methods=["GET"])
-def marks():
-    token = request.cookies.get("jwt")
+#checks token on pages, returns user's role
+def check_and_redirect(token):
     if not token:
-        flash('You are not logged in')
+        flash('Not authorized')
         return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if role == "student":
-        marks = list(db.get_marks(email).items())
-        
-        name = db.get_name(email)
-        return render_template("mark.html", admin=role=='admin', ans=marks, name = name)
-    if role == "teacher" or role == 'admin':
-        return redirect("/")
-
-@app.route("/homework/", methods=["GET"])
-def homeworks():
-    token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if role == "student":
-        homeworks = db.get_homework(email)
-        name = db.get_name(email)
-        return render_template("homework.html", admin=role=='admin', ans=homeworks, name = name)
-    if role == "teacher" or role == 'admin':
-        return redirect("/")
-    
-
-@app.route('/classes/', methods=['GET'])
-def classes():
-    
-    token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
+    email = get_token_email(token)
     if not email:
         flash('Invalid token, please relogin')
         return redirect("/login")
@@ -125,37 +86,31 @@ def classes():
     if not role:
         flash('Invalid token, please relogin')
         return redirect("/login")
-    if role == "student":
-        return redirect("/homework")
-    if role == "teacher" or role == "admin":
-        classes = db.get_classes_by_teacher(email)
-        name = db.get_name(email)
-        return render_template("Main Teacher.html", admin=role=='admin', ans=classes, name=name)
-        
+    return email, role
+
 @app.route('/', methods=['GET'])
 def main():
     token = request.cookies.get("jwt")
     admin = False
     if token:
-        email = confirm_token(token)
+        email = get_token_email(token)
         if email:
             if get_role(email) == 'admin':
                 admin = True
-    return render_template('what_it_is.html', logined_in=request.cookies.get("jwt"), admin=admin)
+    return render_template('what_it_is.html', logged_in=request.cookies.get("jwt"), admin=admin)
 
 @app.route("/login/", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("Signin Template.html")
-    
+        return render_template("login.html")
     else:
         login = request.form["login"]
         password = request.form["password"]
         if not db.is_user_exists(login):
             flash('Account not found')
             return redirect('/login')
-        if db.get_is_user_logged_in(login, password):
-            token = jwt.encode(payload={"name": login, "role": get_role(login), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
+        if db.get_is_user_logged_in(login, password): # login == email
+            token = gen_token(login)
             resp = make_response(redirect("/"))
             resp.set_cookie("jwt", token)
             return resp
@@ -169,7 +124,7 @@ def login():
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('Login Template.html')
+        return render_template('register.html')
     else:
         form = request.form
         password = form['password']
@@ -235,32 +190,63 @@ def register():
             flash("Email is already registered")
             return redirect('/register')
         else:
-            token = generate_confirmation_token(email)
-            confirm_url = "http://server.silaeder.ru:11702/confirm/" + token
-            send_email(email, "Silaeder School confirmation", render_template('mail.html', confirm_url=confirm_url))
-            flash("A confirmation email has been sent to your email")
+            token = gen_token(email)
+            confirm_url = app.config['BASE_URL'] + '/confirm/' + token
+            send_email(email, "Silaeder School Account confirmation", render_template('mail.html', confirm_url=confirm_url))
+            flash("A confirmation link has been sent to your email")
             return redirect('/login')
+
+@app.route("/marks/", methods=["GET"])
+def marks():
+    token = request.cookies.get("jwt")
+    email, role = check_and_redirect(token)
+    if role == "student" or role == 'admin':
+        marks = list(db.get_marks(email).items())
+        name = db.get_name(email)
+        return render_template("marks.html", admin=(role=='admin'), ans=marks, name = name)
+    if role == "teacher":
+        flash('You are not a student')
+        return redirect("/")
+
+@app.route("/homework/", methods=["GET"])
+def homeworks():
+    token = request.cookies.get("jwt")
+    email, role = check_and_redirect(token)
+    if role == "student" or role == 'admin':
+        homeworks = db.get_homework(email)
+        name = db.get_name(email)
+        return render_template("homework.html", admin=(role=='admin'), ans=homeworks, name=name)
+    if role == "teacher":
+        flash('You are not a student')
+        return redirect("/")
+    
+@app.route('/classes/', methods=['GET'])
+def classes():
+    token = request.cookies.get("jwt")
+    email, role = check_and_redirect(token)
+    if role == "student":
+        return redirect("/homework")
+    if role == "teacher" or role == "admin":
+        classes = db.get_classes_by_teacher(email)
+        name = db.get_name(email)
+        return render_template("Main Teacher.html", admin=role=='admin', ans=classes, name=name)
         
 @app.route('/confirm/<token>/', methods=['GET'])
 def confirm_email(token):
-    
-    try:
-        username = confirm_token(token)
-        
-    except:
-        flash('The confirmation link is invalid. Check your email')
+    email = get_token_email(token)
+    if not email:
+        flash('The confirmation link is invalid or expired. Please check your email')
         return redirect('/login')
-    if db.check_not_auth_user_is_exist(username) == []:
-        flash('This is link for not registered account')
+    if db.check_not_auth_user_is_exist(email) == []:
+        flash('This link is for not registered account')
         return redirect('/registration')
-    token = jwt.encode(payload={"name": username, "role": get_role(username), "trash": random.randint(1, 100000)}, key=parse_data("secret_key"))
-    if db.check_auth_user(username):
-        
-        flash('Account already confirmed . Please login')
+    token = jwt.encode(payload={"name": email, "role": get_role(email), "trash": random.randint(1, 100000)}, key=app.config['SECRET_KEY'])
+    if db.check_auth_user(email):
+        flash('Account already confirmed. Please login')
         return redirect('/login')
     else:
-        db.auth_user(username)
-        flash('You have confirmed your account. Thanks!')
+        db.auth_user(email)
+        flash('You have confirmed your account. Thank you for joining us!')
         resp = make_response(redirect("/"))
         resp.set_cookie("jwt", token)
         return resp
@@ -269,22 +255,13 @@ def confirm_email(token):
 def logout():
     resp = make_response(redirect("/"))
     resp.set_cookie("jwt", "", expires=0)
+    flash('Goodbye!')
     return resp
 
 @app.route('/classes/add/', methods=['GET', 'POST'])
 def class_add():
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if role == "student":
         flash("Access denied")
         return redirect('/homework')
@@ -307,17 +284,7 @@ def class_add():
 @app.route('/classes/add_google_class/', methods=['GET', 'POST'])
 def class_google_add():
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if role == "student":
         flash("Access denied")
         return redirect('/homework')
@@ -374,17 +341,7 @@ def class_view(id):
         flash('Class not found')
         return redirect('/')
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if not db.is_teacher_in_class(id, email):
         flash("Access denied")
         return redirect('/classes')
@@ -405,17 +362,7 @@ def google_class_requests(id):
         flash('Class not found')
         return redirect('/classes')
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if not db.is_teacher_in_class(id, email):
         flash("Access denied")
         return redirect('/classes')
@@ -449,17 +396,7 @@ def add_student(id):
         flash('Class not found')
         return redirect('/classes')
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if role != 'student':
         flash("Access denied")
         return redirect('/classes')
@@ -500,17 +437,7 @@ def delete_col(id, ind):
         flash('Class not found')
         return redirect('/classes')
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if role == 'student':
         flash("Access denied") 
         return redirect('/classes')
@@ -527,17 +454,7 @@ def add_teacher(id):
         flash('Class not found')
         return redirect('/classes')
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if role == 'student':
         flash("Access denied") # Может всё же access?
         return redirect('/classes')
@@ -565,17 +482,7 @@ def edit_homework(id):
         flash('Class not found')
         return redirect('/classes')
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if role != 'student' and db.is_teacher_in_class(id, email):
         if request.method == 'GET':
             return render_template('edit_homework.html', id=id)
@@ -593,23 +500,13 @@ def edit_homework(id):
 
 @app.route('/classes/<id>/edit_marks/', methods=['GET', 'POST']) #write
 def edit_marks(id):
-    if not db.is_class_exists(id):
-        flash('Class not found')
-        return redirect('/classes')
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
-    role = get_role(email)
-    if not role:
-        flash('Invalid token, please relogin')
-        return redirect("/login")
+    email, role = check_and_redirect(token)
     if role == 'student':
         flash("Access denied")
+        return redirect('/classes')
+    if not db.is_class_exists(id):
+        flash('Class not found')
         return redirect('/classes')
     if db.get_class_members(id)[0][0] == None:
         flash('Nobody in class. Please add members to your class')
@@ -655,13 +552,7 @@ def edit_marks(id):
 @app.route('/change_password/', methods=['GET', 'POST'])
 def change_password():
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login") 
+    email, role = check_and_redirect(token)
     if request.method == 'GET':
         return render_template('change_pass.html')
     else:
@@ -717,13 +608,7 @@ def change_password():
 @app.route("/change_name/", methods=['GET', 'POST'])
 def change_name():
     token = request.cookies.get("jwt")
-    if not token:
-        flash('You are not logged in')
-        return redirect("/login")
-    email = confirm_token(token)
-    if not email:
-        flash('Invalid token, please relogin')
-        return redirect("/login") 
+    email, role = check_and_redirect(token)
     if request.method == 'GET':
         return render_template('change_name.html')
     else:
@@ -736,12 +621,14 @@ def change_name():
         flash('Name update sucssesfuly')
         return redirect('/classes')
 
+@app.route('/flag.txt', methods=['GET'])
+def test2():
+    return 'Flag! - PB{pb_fl4g_f0r_y0u}'
+
 @app.route('/s3cr37_P@63_F0r_C7Fs_@nd_160r/', methods=['GET'])
 def test():
     return redirect('https://www.youtube.com/watch?v=s8hlfPqdRFw')
 
 if __name__== '__main__':
-    #db.delete_all()
-    #db.create_all()
     app.run("0.0.0.0", port=11702, debug=True)
 

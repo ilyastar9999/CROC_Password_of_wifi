@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, make_response, flash
+from flask import Flask, request, render_template, redirect, make_response, flash, session
 import jwt
 import json
 from flask_mail import Message, Mail
@@ -77,20 +77,20 @@ def get_role(email):
 def check_and_redirect(token):
     if not token:
         flash('Not authorized')
-        return redirect("/login")
+        return redirect("/login/")
     email = get_token_email(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login")
+        return redirect("/login/")
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login")
+        return redirect("/login/")
     return email, role
 
 @app.route('/', methods=['GET'])
 def main():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     admin = False
     if token:
         email = get_token_email(token)
@@ -112,7 +112,9 @@ def login():
         if db.get_is_user_logged_in(login, password): # login == email
             token = gen_token(login)
             resp = make_response(redirect("/"))
-            resp.set_cookie("jwt", token)
+            session['jwt'] = token
+            if not session.modified:
+                session.modified = True
             return resp
         else:
             if db.check_auth_user(login):
@@ -198,7 +200,7 @@ def register():
 
 @app.route("/marks/", methods=["GET"])
 def marks():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == "student" or role == 'admin':
         marks = list(db.get_marks(email).items())
@@ -210,7 +212,7 @@ def marks():
 
 @app.route("/homework/", methods=["GET"])
 def homeworks():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == "student" or role == 'admin':
         homeworks = db.get_homework(email)
@@ -222,7 +224,7 @@ def homeworks():
     
 @app.route('/classes/', methods=['GET'])
 def classes():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == "student":
         return redirect("/homework")
@@ -248,19 +250,22 @@ def confirm_email(token):
         db.auth_user(email)
         flash('You have confirmed your account. Thank you for joining us!')
         resp = make_response(redirect("/"))
-        resp.set_cookie("jwt", token)
+        if not session.modified:
+            session.modified = True
         return resp
 
 @app.route('/logout/', methods=['GET'])
 def logout():
     resp = make_response(redirect("/"))
-    resp.set_cookie("jwt", "", expires=0)
+    session.clear()
+    if not session.modified:
+        session.modified = True
     flash('Goodbye!')
     return resp
 
 @app.route('/classes/add/', methods=['GET', 'POST'])
 def class_add():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == "student":
         flash("Access denied")
@@ -283,7 +288,7 @@ def class_add():
 
 @app.route('/classes/add_google_class/', methods=['GET', 'POST'])
 def class_google_add():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == "student":
         flash("Access denied")
@@ -340,7 +345,7 @@ def class_view(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/')
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if not db.is_teacher_in_class(id, email):
         flash("Access denied")
@@ -361,7 +366,7 @@ def google_class_requests(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if not db.is_teacher_in_class(id, email):
         flash("Access denied")
@@ -395,7 +400,7 @@ def add_student(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role != 'student':
         flash("Access denied")
@@ -436,7 +441,7 @@ def delete_col(id, ind):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == 'student':
         flash("Access denied") 
@@ -453,7 +458,7 @@ def add_teacher(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == 'student':
         flash("Access denied") # Может всё же access?
@@ -481,7 +486,7 @@ def edit_homework(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role != 'student' and db.is_teacher_in_class(id, email):
         if request.method == 'GET':
@@ -500,7 +505,7 @@ def edit_homework(id):
 
 @app.route('/classes/<id>/edit_marks/', methods=['GET', 'POST']) #write
 def edit_marks(id):
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if role == 'student':
         flash("Access denied")
@@ -551,7 +556,7 @@ def edit_marks(id):
 
 @app.route('/change_password/', methods=['GET', 'POST'])
 def change_password():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if request.method == 'GET':
         return render_template('change_pass.html')
@@ -607,7 +612,7 @@ def change_password():
         
 @app.route("/change_name/", methods=['GET', 'POST'])
 def change_name():
-    token = request.cookies.get("jwt")
+    token = session['jwt']
     email, role = check_and_redirect(token)
     if request.method == 'GET':
         return render_template('change_name.html')

@@ -1,7 +1,7 @@
 apiclient==1.0.4
 blinker==1.7.0
 cachetools==5.3.2
-certifi==2023.11.17
+certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
 Flask==3.0.0

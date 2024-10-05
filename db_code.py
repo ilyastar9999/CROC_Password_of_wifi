@@ -10,22 +10,12 @@ AUTO_CLEAR_IN_START = True
 
 locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
-# TODO: just use env
-config_file = open("config.json")
-config_data = json.load(config_file)
-host = config_data["db_host"]
-port = config_data["db_port"]
-user = config_data["db_user"]
-database = config_data["db_name"]
-password = config_data["db_pass"]
+def parse_data(field):
+    file = open("config.json")
+    data = json.load(file)[field]
+    return data
 
-conn = psycopg2.connect(
-    host=host,
-    port=port,
-    database=database,
-    user=user, 
-    password=password
-)
+conn = psycopg2.connect(port=parse_data("port"), host=parse_data("host"), dbname=parse_data("dbname"), user=parse_data("user"), password=parse_data("password"))
 
 # TODO: use logging library
 print('sucsessful connect to db')
@@ -34,12 +24,6 @@ print('sucsessful connect to db')
 cursor = conn.cursor()
 
 conn.rollback()
-
-def parse_data(field):
-    file = open("config.json")
-    data = json.load(file)[field]
-
-    return data
 
 def get_all_users():
     query = """SELECT * FROM users;"""

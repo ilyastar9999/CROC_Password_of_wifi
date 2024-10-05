@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, make_response, flash, session
+from flask import Flask, request, render_template, redirect, make_response, flash, session, url_for
 import jwt
 import json
 from flask_mail import Message, Mail
@@ -10,6 +10,9 @@ import db_code as db
 import random
 import parse_google
 import datetime
+from authlib.integrations.flask_client import OAuth
+import authlib
+import auth0
 
 app = Flask(__name__)
 
@@ -18,8 +21,26 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/\x00'
 def parse_data(field):
     file = open("config.json")
     data = json.load(file)[field]
-
     return data
+
+def add_field_to_config(a, b):
+    with open('config.json', 'r') as file:
+        config = json.load(file)
+    config[a] = b
+    with open('config.json', 'w') as file:
+        json.dump(config, file, indent=4)
+
+oauth = OAuth(app)
+
+oauth.register(
+    "auth0",
+    client_id=parse_data("AUTH0_CLIENT_ID"),
+    client_secret=parse_data("AUTH0_CLIENT_SECRET"),
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f'https://{parse_data("AUTH0_DOMAIN")}/.well-known/openid-configuration'
+)
 
 app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
 app.config['MAIL_PORT'] = 587
@@ -43,7 +64,7 @@ def send_email(to, subject, template):
         subject,
         recipients=[to],
         html=template,
-        sender=parse_data('mail')
+        sender=app.config['MAIL_DEFAULT_SENDER']
     )
     mail_sender.send(msg)
 
@@ -77,20 +98,20 @@ def get_role(email):
 def check_and_redirect(token):
     if not token:
         flash('Not authorized')
-        return redirect("/login/")
+        return make_response(redirect("/login/"))
     email = get_token_email(token)
     if not email:
         flash('Invalid token, please relogin')
-        return redirect("/login/")
+        return make_response(redirect("/login/"))
     role = get_role(email)
     if not role:
         flash('Invalid token, please relogin')
-        return redirect("/login/")
-    return email, role
+        return make_response(redirect("/login/"))
+    return [email, role]
 
 @app.route('/', methods=['GET'])
 def main():
-    token = session['jwt']
+    token = session.get('jwt', None)
     admin = False
     if token:
         email = get_token_email(token)
@@ -101,107 +122,134 @@ def main():
 
 @app.route("/login/", methods=["GET", "POST"])
 def login():
-    if request.method == "GET":
-        return render_template("login.html")
-    else:
-        login = request.form["login"]
-        password = request.form["password"]
-        if not db.is_user_exists(login):
-            flash('Account not found')
-            return redirect('/login')
-        if db.get_is_user_logged_in(login, password): # login == email
-            token = gen_token(login)
-            resp = make_response(redirect("/"))
-            session['jwt'] = token
-            if not session.modified:
-                session.modified = True
-            return resp
-        else:
-            if db.check_auth_user(login):
-                flash('Wrong password')
-            else:
-                flash('Account not confirmed')
-            return redirect("/login")
+    # if request.method == "GET":
+    #     return render_template("login.html")
+    # else:
+    #     login = request.form["login"]
+    #     password = request.form["password"]
+    #     if not db.is_user_exists(login):
+    #         flash('Account not found')
+    #         return redirect('/login')
+    #     if db.get_is_user_logged_in(login, password): # login == email
+    #         token = gen_token(login)
+    #         resp = make_response(redirect("/"))
+    #         session['jwt'] = token
+    #         if not session.modified:
+    #             session.modified = True
+    #         return resp
+    #     else:
+    #         if db.check_auth_user(login):
+    #             flash('Wrong password')
+    #         else:
+    #             flash('Account not confirmed')
+    #         return redirect("/login")
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("callback", _external=True)
+    )   
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
-    if request.method == 'GET':
-        return render_template('register.html')
-    else:
-        form = request.form
-        password = form['password']
-        password2 = form['password2']
-        email = form['email']
-        name = form['name']
+    # if request.method == 'GET':
+    #     return render_template('register.html')
+    # else:
+    #     form = request.form
+    #     password = form['password']
+    #     password2 = form['password2']
+    #     email = form['email']
+    #     name = form['name']
 
-        if email == "" or name == "" or password == "" or password2 == "":
-            flash("All fields are required")
-            return redirect('/register')
+    #     if email == "" or name == "" or password == "" or password2 == "":
+    #         flash("All fields are required")
+    #         return redirect('/register')
 
-        if not re.match(r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$", email):
-            flash("Invalid email address")
-            return redirect('/register')
+    #     if not re.match(r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$", email):
+    #         flash("Invalid email address")
+    #         return redirect('/register')
 
-        parsed = parse.parse_csv()
-        if email in parsed[0]:
-            type_user = 'pipl'
-        elif email in parsed[1]:
-            type_user = 'teacher'
+    #     parsed = parse.parse_csv()
+    #     if email in parsed[0]:
+    #         type_user = 'pipl'
+    #     elif email in parsed[1]:
+    #         type_user = 'teacher'
+    #     else:
+    #         flash("Email is not registered in Silaeder. Please check your email or write to administrator(@ilyastarcek)")
+    #         return redirect('/register')
+    #     if len(password) < 8:
+    #         flash("Password must be at least 8 characters long")
+    #         return redirect('/register')
+
+    #     hasDigits, hasUpperCase, hasLowerCase, hasSpecialCharecters, hasSpases = False, False, False, False, True
+
+    #     for i in password:
+    #         if (i.isdigit()):
+    #             hasDigits = True
+    #         elif (i.isupper()):
+    #             hasUpperCase = True
+    #         elif (i.islower()):
+    #             hasLowerCase = True
+    #         elif (i == ' '):
+    #             flash('Spaces are not allowed in')
+    #         else:
+    #             hasSpecialCharecters = True 
+
+    #     if not hasDigits:
+    #         flash("Password must contain at least one digit")
+    #         return redirect('/register')
+        
+    #     if not hasUpperCase:
+    #         flash("Password must contain at least one uppercase letter")
+    #         return redirect('/register')
+        
+    #     if not hasLowerCase:
+    #         flash("Password must contain at least one lowercase letter")
+    #         return redirect('/register')
+        
+    #     if not hasSpecialCharecters:
+    #         flash("Password must contain at least one special character")
+    #         return redirect('/register')
+
+    #     if password!= password2:
+    #         flash("Passwords don't match")
+    #         return redirect('/register')
+        
+    #     if not db.create_user(name, password, email):
+    #         flash("Email is already registered")
+    #         return redirect('/register')
+    #     else:
+    #         token = gen_token(email)
+    #         confirm_url = app.config['BASE_URL'] + '/confirm/' + token
+    #         send_email(email, "Silaeder School Account confirmation", render_template('mail.html', confirm_url=confirm_url))
+    #         flash("A confirmation link has been sent to your email")
+    #         return redirect('/login')
+    return oauth.auth0.authorize_redirect(
+        redirect_uri=url_for("callback", _external=True)
+    )
+
+@app.route("/callback", methods=["GET", "POST"])
+def callback():
+    try:
+        token = oauth.auth0.authorize_access_token()
+        app.logger.debug(token)
+    except authlib.integrations.base_client.errors.OAuthError as e:
+        if "Please verify your email before continuing" in str(e):
+            flash(['error', "Please verify your email before continuing"])
+            return redirect('/')
         else:
-            flash("Email is not registered in Silaeder. Please check your email or write to administrator(@ilyastarcek)")
-            return redirect('/register')
-        if len(password) < 8:
-            flash("Password must be at least 8 characters long")
-            return redirect('/register')
+            return str(e)
+    app.logger.debug(token)
+    token2 = gen_token(token['userinfo']['nickname'])
+    session['jwt'] = token2
+    return redirect('/')
 
-        hasDigits, hasUpperCase, hasLowerCase, hasSpecialCharecters, hasSpases = False, False, False, False, True
-
-        for i in password:
-            if (i.isdigit()):
-                hasDigits = True
-            elif (i.isupper()):
-                hasUpperCase = True
-            elif (i.islower()):
-                hasLowerCase = True
-            elif (i == ' '):
-                flash('Spaces are not allowed in')
-            else:
-                hasSpecialCharecters = True 
-
-        if not hasDigits:
-            flash("Password must contain at least one digit")
-            return redirect('/register')
-        
-        if not hasUpperCase:
-            flash("Password must contain at least one uppercase letter")
-            return redirect('/register')
-        
-        if not hasLowerCase:
-            flash("Password must contain at least one lowercase letter")
-            return redirect('/register')
-        
-        if not hasSpecialCharecters:
-            flash("Password must contain at least one special character")
-            return redirect('/register')
-
-        if password!= password2:
-            flash("Passwords don't match")
-            return redirect('/register')
-        
-        if not db.create_user(name, password, email):
-            flash("Email is already registered")
-            return redirect('/register')
-        else:
-            token = gen_token(email)
-            confirm_url = app.config['BASE_URL'] + '/confirm/' + token
-            send_email(email, "Silaeder School Account confirmation", render_template('mail.html', confirm_url=confirm_url))
-            flash("A confirmation link has been sent to your email")
-            return redirect('/login')
 
 @app.route("/marks/", methods=["GET"])
 def marks():
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == "student" or role == 'admin':
         marks = list(db.get_marks(email).items())
         name = db.get_name(email)
@@ -212,8 +260,12 @@ def marks():
 
 @app.route("/homework/", methods=["GET"])
 def homeworks():
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == "student" or role == 'admin':
         homeworks = db.get_homework(email)
         name = db.get_name(email)
@@ -224,8 +276,12 @@ def homeworks():
     
 @app.route('/classes/', methods=['GET'])
 def classes():
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == "student":
         return redirect("/homework")
     if role == "teacher" or role == "admin":
@@ -233,26 +289,26 @@ def classes():
         name = db.get_name(email)
         return render_template("Main Teacher.html", admin=role=='admin', ans=classes, name=name)
         
-@app.route('/confirm/<token>/', methods=['GET'])
-def confirm_email(token):
-    email = get_token_email(token)
-    if not email:
-        flash('The confirmation link is invalid or expired. Please check your email')
-        return redirect('/login')
-    if db.check_not_auth_user_is_exist(email) == []:
-        flash('This link is for not registered account')
-        return redirect('/registration')
-    token = jwt.encode(payload={"name": email, "role": get_role(email), "trash": random.randint(1, 100000)}, key=app.config['SECRET_KEY'])
-    if db.check_auth_user(email):
-        flash('Account already confirmed. Please login')
-        return redirect('/login')
-    else:
-        db.auth_user(email)
-        flash('You have confirmed your account. Thank you for joining us!')
-        resp = make_response(redirect("/"))
-        if not session.modified:
-            session.modified = True
-        return resp
+# @app.route('/confirm/<token>/', methods=['GET'])
+# def confirm_email(token):
+#     email = get_token_email(token)
+#     if not email:
+#         flash('The confirmation link is invalid or expired. Please check your email')
+#         return redirect('/login')
+#     if db.check_not_auth_user_is_exist(email) == []:
+#         flash('This link is for not registered account')
+#         return redirect('/registration')
+#     token = jwt.encode(payload={"name": email, "role": get_role(email), "trash": random.randint(1, 100000)}, key=app.config['SECRET_KEY'])
+#     if db.check_auth_user(email):
+#         flash('Account already confirmed. Please login')
+#         return redirect('/login')
+#     else:
+#         db.auth_user(email)
+#         flash('You have confirmed your account. Thank you for joining us!')
+#         resp = make_response(redirect("/"))
+#         if not session.modified:
+#             session.modified = True
+#         return resp
 
 @app.route('/logout/', methods=['GET'])
 def logout():
@@ -265,8 +321,12 @@ def logout():
 
 @app.route('/classes/add/', methods=['GET', 'POST'])
 def class_add():
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == "student":
         flash("Access denied")
         return redirect('/homework')
@@ -288,8 +348,12 @@ def class_add():
 
 @app.route('/classes/add_google_class/', methods=['GET', 'POST'])
 def class_google_add():
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == "student":
         flash("Access denied")
         return redirect('/homework')
@@ -345,8 +409,12 @@ def class_view(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/')
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if not db.is_teacher_in_class(id, email):
         flash("Access denied")
         return redirect('/classes')
@@ -366,8 +434,12 @@ def google_class_requests(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if not db.is_teacher_in_class(id, email):
         flash("Access denied")
         return redirect('/classes')
@@ -400,8 +472,12 @@ def add_student(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role != 'student':
         flash("Access denied")
         return redirect('/classes')
@@ -441,8 +517,12 @@ def delete_col(id, ind):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == 'student':
         flash("Access denied") 
         return redirect('/classes')
@@ -458,8 +538,12 @@ def add_teacher(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == 'student':
         flash("Access denied") # Может всё же access?
         return redirect('/classes')
@@ -486,8 +570,12 @@ def edit_homework(id):
     if not db.is_class_exists(id):
         flash('Class not found')
         return redirect('/classes')
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role != 'student' and db.is_teacher_in_class(id, email):
         if request.method == 'GET':
             return render_template('edit_homework.html', id=id)
@@ -505,8 +593,12 @@ def edit_homework(id):
 
 @app.route('/classes/<id>/edit_marks/', methods=['GET', 'POST']) #write
 def edit_marks(id):
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if role == 'student':
         flash("Access denied")
         return redirect('/classes')
@@ -556,8 +648,12 @@ def edit_marks(id):
 
 @app.route('/change_password/', methods=['GET', 'POST'])
 def change_password():
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if request.method == 'GET':
         return render_template('change_pass.html')
     else:
@@ -612,8 +708,12 @@ def change_password():
         
 @app.route("/change_name/", methods=['GET', 'POST'])
 def change_name():
-    token = session['jwt']
-    email, role = check_and_redirect(token)
+    token = session.get('jwt', None)
+    __ans = check_and_redirect(token)
+    if type(__ans) == list:
+        email, role = __ans[0], __ans[1]
+    else:
+        return __ans
     if request.method == 'GET':
         return render_template('change_name.html')
     else:
@@ -635,5 +735,5 @@ def test():
     return redirect('https://www.youtube.com/watch?v=s8hlfPqdRFw')
 
 if __name__== '__main__':
-    app.run("0.0.0.0", port=11702, debug=True)
+    app.run("0.0.0.0", port=11802, debug=True)
 

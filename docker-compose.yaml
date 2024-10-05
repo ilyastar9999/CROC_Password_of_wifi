@@ -12,33 +12,39 @@ services:
      - .:/app
     # Открытие порта на хостовой машине и перенаправление на порт в контейнере
     ports:
-      - 11702:11702
+      - 11802:11802
     # Зависимость от другого сервиса
     depends_on:
       - pgdb
 
   pgdb:
     # Использование готового образа postgres
-    image: postgres:14
+    image: postgres
+    ports:
+      - 5435:5432
     # Задание переменных окружения для контейнера с postgres
     environment:
-      - POSTGRES_DB=sesh
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      PGDATABASE: "diarydb"
+      POSTGRES_DB: "diarydb"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1"
+      PGPASSWORD: "1"
+      PGUSER: "postgres"
+      PG_TRUST_LOCALNET: "true"
      # Связывание тома с директорией в контейнере для сохранения данных postgres
     volumes:
-      - pgdbdata:/var/lib/postgresql/data/
+      - ./pgdbdata:/var/lib/postgresql/data/
     expose:
-      - "3306"
+      - "5435"
   
   pgadmin:
-    image: dpage/pgadmin4:7
+    image: dpage/pgadmin4
     restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: "silaeder_dairy@admin.org"
-      PGADMIN_DEFAULT_PASSWORD: ""
+      PGADMIN_DEFAULT_PASSWORD: "1"
     ports:
-      - "11704:80"
+      - "11804:80"
     volumes:
       - pgadmin:/var/lib/pgadmin
 
